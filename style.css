@@ -38,6 +38,10 @@ hr {
     cursor: pointer;
 }
 
+.refresh-btn {
+    background-color: #ff9800 !important; /* Turuncu renkli yenile butonu */
+}
+
 #puan-butonlari button {
     padding: 10px 15px;
     margin: 5px 10px 5px 0;
