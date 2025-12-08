@@ -4,23 +4,65 @@ body {
     background-color: #f4f4f9;
 }
 
-#kontrol-alani, #islemler-alani {
+header h1 {
+    text-align: center;
+    color: #333;
+}
+
+main section {
     background: white;
-    padding: 15px;
+    padding: 20px;
     border-radius: 8px;
     margin-bottom: 20px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 
+hr {
+    margin: 20px 0;
+    border: 0;
+    border-top: 1px solid #ccc;
+}
+
+/* --- KONTROL VE İŞLEMLER ALANI STİLLERİ --- */
+
+#kontrol-alani label, #kontrol-alani input, #kontrol-alani select, #kontrol-alani button {
+    margin-right: 15px;
+    padding: 8px;
+    border-radius: 4px;
+}
+
+#kontrol-alani button {
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
+
 #puan-butonlari button {
     padding: 10px 15px;
-    margin-right: 10px;
+    margin: 5px 10px 5px 0;
     background-color: #4CAF50;
     color: white;
     border: none;
     border-radius: 4px;
     cursor: pointer;
 }
+
+#devamsiz-listesi ul {
+    list-style: none;
+    padding: 0;
+    columns: 2; /* Öğrencileri iki kolonda göster */
+}
+
+#devamsiz-listesi li {
+    margin-bottom: 5px;
+}
+
+.aktif { color: green; font-weight: bold; }
+.devamsiz { color: red; }
+
+
+/* --- GRUPLAR TABLOSU STİLLERİ --- */
 
 #grup-tablolari {
     display: flex;
@@ -29,7 +71,7 @@ body {
 }
 
 .grup-karti {
-    flex: 1 1 300px; /* Her bir kartın genişliği */
+    flex: 1 1 300px; 
     background: #e9e9e9;
     padding: 15px;
     border-radius: 8px;
@@ -38,6 +80,7 @@ body {
 .grup-karti table {
     width: 100%;
     border-collapse: collapse;
+    margin-top: 10px;
 }
 
 .grup-karti th, .grup-karti td {
@@ -45,73 +88,52 @@ body {
     padding: 8px;
     text-align: left;
 }
+
+/* --- VERİ EKLEME VE YÖNETİM ALANI STİLLERİ --- */
+
 #veri-ekleme-alani {
-    background: #e6f7ff; /* Açık mavi arka plan */
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    background: #e6f7ff;
+}
+
+#yonetim-alani {
+    background: #fff8e1; 
 }
 
 .form-group {
     margin-bottom: 15px;
-}
-
-#veri-ekleme-alani input[type="text"], 
-#veri-ekleme-alani select {
-    width: 100%;
-    padding: 10px;
-    margin-top: 5px;
-    box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-}
-
-#veri-ekleme-alani button {
-    padding: 10px 15px;
-    background-color: #007bff; /* Mavi Buton */
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}#yonetim-alani {
-    background: #fff8e1; /* Açık sarı arka plan */
-    padding: 20px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-}
-
-#yonetim-alani .form-group {
     display: flex;
     gap: 10px;
     align-items: center;
-    margin-bottom: 10px;
 }
 
-#yonetim-alani input, #yonetim-alani select {
-    padding: 8px;
+.form-group label {
+    flex-shrink: 0;
+    min-width: 80px;
+}
+
+#veri-ekleme-alani input[type="text"], 
+#veri-ekleme-alani select,
+#yonetim-alani input[type="text"], 
+#yonetim-alani select {
+    width: 100%;
+    padding: 10px;
+    box-sizing: border-box;
     border: 1px solid #ccc;
     border-radius: 4px;
     flex-grow: 1;
 }
 
+#veri-ekleme-alani button,
 #yonetim-alani button {
-    padding: 8px 15px;
+    padding: 10px 15px;
     border: none;
     border-radius: 4px;
     cursor: pointer;
     background-color: #007bff;
     color: white;
-    white-space: nowrap; /* Buton metninin sığması için */
+    white-space: nowrap;
 }
 
 .delete-btn {
-    background-color: #dc3545 !important; /* Kırmızı renk */
-}
-
-hr {
-    margin: 20px 0;
-    border: 0;
-    border-top: 1px solid #ccc;
+    background-color: #dc3545 !important; 
 }
