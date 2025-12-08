@@ -1,25 +1,26 @@
-// Örnek öğrenci verisi (Excel'den aktarılmış/sadeleştirilmiş)
+// script.js dosyasındaki siniflar objesi
 const siniflar = {
-    "10-A": [
+    // Mevcut sınıfınızı güncelleyebilirsiniz
+    "10-A": [ 
         { ad: "Ahmet Yılmaz", devamsiz: false, puan: 0 },
         { ad: "Ayşe Kaya", devamsiz: false, puan: 0 },
-        { ad: "Burak Demir", devamsiz: false, puan: 0 },
-        // ... diğer 10-A öğrencileri
+        // Yeni öğrencileri buraya ekleyin
+        { ad: "Yeni Öğrenci Adı", devamsiz: false, puan: 0 } 
     ],
-    "11-B": [
-        // ... 11-B öğrencileri
+    // Yeni bir sınıf ekleyebilirsiniz
+    "9-C": [ 
+        { ad: "Cemil Güneş", devamsiz: false, puan: 0 },
+        // ... diğer 9-C öğrencileri
     ]
 };
 
-// Puan Butonlarının Tanımlanması
+// script.js dosyasındaki PUAN_BUTONLARI dizisi
 const PUAN_BUTONLARI = [
     { deger: 5, etiket: "Hızlı Cevap (+5)" },
     { deger: 10, etiket: "Mükemmel Sunum (+10)" },
+    { deger: 20, etiket: "Proje Kazananı (+20)" }, // Yeni Buton
     { deger: -5, etiket: "Uyar ( -5)" }
 ];
-
-let mevcutGruplar = [];
-let seciliSinif = "10-A"; // Başlangıç sınıfı
 
 document.addEventListener('DOMContentLoaded', () => {
     // Sınıf Seçimini Doldur
