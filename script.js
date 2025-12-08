@@ -1,5 +1,54 @@
 // script.js dosyasındaki siniflar objesi
-const siniflar = {
+const siniflar = // Mevcut kalıcı veriyi yönetmek için bu kısım en başta kalmalıdır.
+function veriyiKaydet() {
+    localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
+}
+
+function veriyiYukle() {
+    const kayitliVeri = localStorage.getItem('sinifVerileri');
+    if (kayitliVeri) {
+        Object.assign(siniflar, JSON.parse(kayitliVeri));
+        return true; // Veri yüklendi
+    }
+    return false; // Veri yok
+}
+
+// BAŞLANGIÇ Sınıf ve Öğrenci Verileri (Sadece LocalStorage'da veri yoksa kullanılır)
+const BASE_SINIFLAR = {
+    "10-A": [ 
+        { ad: "Ahmet Yılmaz", devamsiz: false, puan: 0 },
+        { ad: "Ayşe Kaya", devamsiz: false, puan: 0 },
+        { ad: "Burak Demir", devamsiz: false, puan: 0 }
+        // Excel'den aktardığınız diğer 10-A öğrencileri...
+    ],
+    // İstenen yeni sınıflar
+    "5A": [],
+    "5B": [],
+    "5C": [],
+    "5D": [],
+    "5E": [],
+    "5F": [],
+    "6A": [],
+    "6B": [],
+    "6E": [],
+    "6F": [],
+};
+
+// Uygulamanın kullanacağı ana veri objesi
+let siniflar = {};
+let mevcutGruplar = [];
+let seciliSinif = "10-A"; 
+// ... (Diğer sabitler ve kodlar devam eder)
+
+// document.addEventListener('DOMContentLoaded', ... içindeki ilk kısım güncellenmeli:
+document.addEventListener('DOMContentLoaded', () => {
+    // LocalStorage'dan veri yükle, yoksa başlangıç verilerini kullan
+    if (!veriyiYukle()) {
+        Object.assign(siniflar, BASE_SINIFLAR);
+    }
+    // ... (kodun geri kalanı devam eder)
+});
+{
     // Mevcut sınıfınızı güncelleyebilirsiniz
     "10-A": [ 
         { ad: "Ahmet Yılmaz", devamsiz: false, puan: 0 },
@@ -94,7 +143,12 @@ const PUAN_BUTONLARI = [
 let mevcutGruplar = [];
 let seciliSinif = "10-A"; // Başlangıç sınıfı
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', () => {document.addEventListener('DOMContentLoaded', () => {
+    // ... (mevcut yükleme, sinifSecimi doldurma ve puan butonları kodları) ...
+
+    // Yeni eklenen yönetim select'lerini doldur
+    yonetimSelectleriniDoldur(); 
+});
     // Sınıf Seçimini Doldur
     const sinifSecimElementi = document.getElementById('sinifSecimi');
     Object.keys(siniflar).forEach(sinif => {
@@ -239,5 +293,92 @@ function veriyiYukle() {
     if (kayitliVeri) {
         // Kayıtlı veri varsa, mevcut siniflar objesinin üzerine yaz
         Object.assign(siniflar, JSON.parse(kayitliVeri));
+    }
+}
+function yonetimSelectleriniDoldur() {
+    const sinifListesi = Object.keys(siniflar);
+    const selects = [
+        document.getElementById('duzenlenecekSinifSecim'),
+        document.getElementById('silinecekSinifSecim')
+    ];
+    
+    // Tüm select'leri temizle
+    selects.forEach(select => select.innerHTML = '');
+
+    // Select'leri doldur
+    sinifListesi.forEach(sinif => {
+        selects.forEach(select => {
+            const option = document.createElement('option');
+            option.value = sinif;
+            option.textContent = sinif;
+            select.appendChild(option);
+        });
+    });
+
+    // Öğrenci düzenleme için ilk sınıfın öğrencilerini yükle
+    ogrenciListesiGuncelle();
+}
+
+function ogrenciListesiGuncelle() {
+    const sinifAdi = document.getElementById('duzenlenecekSinifSecim').value;
+    const ogrenciSelect = document.getElementById('duzenlenecekOgrenci');
+    ogrenciSelect.innerHTML = ''; // Temizle
+
+    if (siniflar[sinifAdi]) {
+        siniflar[sinifAdi].forEach(ogrenci => {
+            const option = document.createElement('option');
+            option.value = ogrenci.ad; // Mevcut adı value olarak kullan
+            option.textContent = ogrenci.ad;
+            ogrenciSelect.appendChild(option);
+        });
+    }
+}function ogrenciAdiniDuzenle() {
+    const sinifAdi = document.getElementById('duzenlenecekSinifSecim').value;
+    const eskiAd = document.getElementById('duzenlenecekOgrenci').value;
+    const yeniAdInput = document.getElementById('yeniOgrenciAdDuzenle');
+    const yeniAd = yeniAdInput.value.trim();
+
+    if (!yeniAd || !eskiAd) return alert("Lütfen hem öğrenciyi seçin hem de yeni adı girin.");
+
+    const ogrenci = siniflar[sinifAdi].find(o => o.ad === eskiAd);
+
+    if (ogrenci) {
+        ogrenci.ad = yeniAd; // Adı güncelle
+        
+        veriyiKaydet(); // Kalıcı olarak kaydet
+        yeniAdInput.value = ''; // Input'u temizle
+        
+        // Arayüzleri yenile
+        yonetimSelectleriniDoldur(); // Select listelerini güncelle
+        grupTablolariniGuncelle(); // Puan tablolarını güncelle
+        alert(`${eskiAd} öğrencisinin adı başarıyla ${yeniAd} olarak güncellendi.`);
+    } else {
+        alert("Öğrenci bulunamadı.");
+    }
+}function sinifiSil() {
+    const silinecekSinif = document.getElementById('silinecekSinifSecim').value;
+
+    if (!silinecekSinif) return alert("Lütfen silmek istediğiniz sınıfı seçin.");
+
+    if (confirm(`${silinecekSinif} sınıfını ve tüm öğrencilerini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
+        
+        // Sınıfı ana objeden sil
+        delete siniflar[silinecekSinif];
+
+        // Veriyi kalıcı olarak kaydet
+        veriyiKaydet();
+
+        // Arayüzleri yenile
+        yonetimSelectleriniDoldur();
+        
+        // Kontrol alanındaki sınıf listesini ve grup tablolarını yenile
+        // (Bu kodların da güncellenmesi gerekir, bkz. 4. Adım)
+        window.location.reload(); // En kolay yöntem sayfayı yenilemek
+        // Veya:
+        // sinifSelectleriniYenile(); 
+        // mevcutGruplar = [];
+        // grupTablolariniGuncelle();
+        
+        alert(`${silinecekSinif} sınıfı başarıyla silindi.`);
     }
 }

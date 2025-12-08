@@ -21,6 +21,33 @@
             <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt</button>
         </section>
 <section id="veri-ekleme-alani">
+    <section id="yonetim-alani">
+    <h2>🛠️ Yönetim İşlemleri</h2>
+    <h3>Öğrenci Adı Düzenle</h3>
+    <div class="form-group">
+        <label for="duzenlenecekSinifSecim">Sınıf Seç:</label>
+        <select id="duzenlenecekSinifSecim" onchange="ogrenciListesiGuncelle()"></select>
+    </div>
+    <div class="form-group">
+        <label for="duzenlenecekOgrenci">Öğrenci Seç:</label>
+        <select id="duzenlenecekOgrenci"></select>
+    </div>
+    <div class="form-group">
+        <label for="yeniOgrenciAdDuzenle">Yeni Ad:</label>
+        <input type="text" id="yeniOgrenciAdDuzenle" placeholder="Yeni Öğrenci Adı Soyadı">
+        <button onclick="ogrenciAdiniDuzenle()">Adı Güncelle</button>
+    </div>
+
+    <hr>
+    
+    <h3>Sınıfı Sil</h3>
+    <p>Seçilen sınıfı ve tüm öğrencilerini sistemden kalıcı olarak siler.</p>
+    <div class="form-group">
+        <label for="silinecekSinifSecim">Silinecek Sınıf:</label>
+        <select id="silinecekSinifSecim"></select>
+        <button onclick="sinifiSil()" class="delete-btn">Sınıfı Sil (Kalıcı)</button>
+    </div>
+</section>
     <h2>➕ Öğrenci Ekle</h2>
     <div class="form-group">
         <label for="yeniOgrenciAd">Öğrenci Adı:</label>
