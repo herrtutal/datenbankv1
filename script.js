@@ -179,3 +179,27 @@ function grupTablolariniGuncelle() {
 
     container.prepend(devamsizDiv); // En üste ekle
 }
+function yeniOgrenciEkle() {
+    const ad = document.getElementById('yeniOgrenciAd').value.trim();
+    const hedefSinif = document.getElementById('hedefSinifSecimi').value;
+
+    if (!ad || !hedefSinif || !siniflar[hedefSinif]) {
+        alert("Lütfen geçerli bir ad ve sınıf seçin.");
+        return;
+    }
+
+    // Yeni öğrenci objesi
+    const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
+    
+    // Sınıfa ekle
+    siniflar[hedefSinif].push(yeniOgrenci);
+    
+    // Veriyi kalıcı olarak kaydet
+    veriyiKaydet(); 
+    
+    alert(`${ad}, ${hedefSinif} sınıfına eklendi.`);
+    document.getElementById('yeniOgrenciAd').value = ''; // Input'u temizle
+    
+    // Sınıf seçim listesini ve tabloları güncelleyin
+    grupTablolariniGuncelle(); 
+}
