@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Grup ve Puan Otomasyonu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Grup ve Puan Yönetim Sistemi</h1>
+    </header>
+
+    <main>
+        <section id="kontrol-alani">
+            <label for="sinifSecimi">Sınıf Seçin:</label>
+            <select id="sinifSecimi"></select>
+
+            <label for="grupSayisi">Grup Sayısı:</label>
+            <input type="number" id="grupSayisi" min="2" value="4">
+
+            <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt</button>
+        </section>
+
+        <section id="islemler-alani">
+            <h2>İşlemler</h2>
+            <div id="puan-butonlari">
+                </div>
+        </section>
+
+        <section id="grup-tablolari">
+            <h2>Gruplar ve Puanlar</h2>
+            <div id="gruplar-container">
+                </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
