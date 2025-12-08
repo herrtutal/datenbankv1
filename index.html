@@ -20,7 +20,18 @@
 
             <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt</button>
         </section>
-
+<section id="veri-ekleme-alani">
+    <h2>➕ Öğrenci Ekle</h2>
+    <div class="form-group">
+        <label for="yeniOgrenciAd">Öğrenci Adı:</label>
+        <input type="text" id="yeniOgrenciAd" placeholder="Öğrencinin Adı Soyadı" required>
+    </div>
+    <div class="form-group">
+        <label for="hedefSinifSecimi">Hedef Sınıf:</label>
+        <select id="hedefSinifSecimi"></select>
+    </div>
+    <button onclick="yeniOgrenciEkle()">Sınıfa Ekle</button>
+</section>
         <section id="islemler-alani">
             <h2>İşlemler</h2>
             <div id="puan-butonlari">
