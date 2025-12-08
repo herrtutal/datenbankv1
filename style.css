@@ -51,7 +51,7 @@ hr {
 #devamsiz-listesi ul {
     list-style: none;
     padding: 0;
-    columns: 2; /* Öğrencileri iki kolonda göster */
+    columns: 2;
 }
 
 #devamsiz-listesi li {
