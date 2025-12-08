@@ -52,7 +52,7 @@ function veriyiYukle() {
 }
 
 
-// --- GENEL GÜNCELLEME İŞLEVİ (YENİ KOMUT) ---
+// --- GENEL GÜNCELLEME İŞLEVİ (HATA GİDERİLEN KISIM) ---
 
 /**
  * Tüm sınıf seçme menülerini, aktif sınıf değişkenini ve tablo/listeleri günceller.
@@ -61,23 +61,39 @@ function veriyiYukle() {
 function tumVerileriGuncelle() {
     // 1. Sınıf Seçme Menülerini Doldur (Yeni/Silinen sınıfları listeler)
     sinifSelectleriniDoldur(); 
-    
-    // 2. Aktif sınıfı güncelle
-    const sinifSecimElementi = document.getElementById('sinifSecimi');
-    // Eğer eskiden seçili bir sınıf varsa onu koru, yoksa ilk sınıfı seç
-    if (!siniflar[seciliSinif]) {
-        seciliSinif = sinifSecimElementi.value || Object.keys(siniflar)[0] || null;
-    }
-    sinifSecimElementi.value = seciliSinif; // Ana select'i de ayarla
-    
-    // 3. Mevcut grupları sıfırla (Gruplar sadece manuel basınca oluşmalı)
-    mevcutGruplar = [];
 
-    // 4. Yönetim ve Grup tablolarını güncelle
+    const sinifSecimElementi = document.getElementById('sinifSecimi');
+    const kalanSiniflar = Object.keys(siniflar);
+
+    // 2. Aktif sınıfı güvenli bir şekilde belirle
+    let yeniSeciliSinif = null;
+    
+    // a) Eğer eski seciliSinif hala siniflar listesinde varsa, onu koru.
+    if (seciliSinif && kalanSiniflar.includes(seciliSinif)) {
+        yeniSeciliSinif = seciliSinif;
+    } 
+    // b) Aksi takdirde, kalan ilk sınıfı seç
+    else if (kalanSiniflar.length > 0) {
+        yeniSeciliSinif = kalanSiniflar[0];
+    }
+    
+    // 3. Global değişkeni ve tüm ilgili Select kutularını yeni değerle ayarla
+    seciliSinif = yeniSeciliSinif;
+    const duzenlenecekSinifSecimElementi = document.getElementById('duzenlenecekSinifSecim');
+    const hedefSinifSecimiElementi = document.getElementById('hedefSinifSecimi');
+    const silinecekSinifSecimElementi = document.getElementById('silinecekSinifSecim');
+    
+    sinifSecimElementi.value = seciliSinif || ''; 
+    duzenlenecekSinifSecimElementi.value = seciliSinif || ''; 
+    hedefSinifSecimiElementi.value = seciliSinif || ''; 
+    silinecekSinifSecimElementi.value = seciliSinif || ''; 
+    
+    // 4. Grupları sıfırla ve arayüzü çiz
+    mevcutGruplar = [];
     ogrenciListesiGuncelle();
     grupTablolariniGuncelle();
     
-    console.log("Tüm arayüz verileri güncellendi.");
+    console.log("Tüm arayüz verileri güncellendi. Yeni Seçili Sınıf:", seciliSinif);
 }
 
 
@@ -90,7 +106,6 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
-    // Rastgele karıştırma
     for (let i = aktifOgrenciler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
@@ -244,7 +259,7 @@ function yeniOgrenciEkle() {
     alert(`${ad}, ${hedefSinif} sınıfına başarıyla eklendi ve kaydedildi!`);
     
     adInput.value = ''; 
-    tumVerileriGuncelle(); // Tüm arayüzü güncelle
+    tumVerileriGuncelle(); 
 }
 
 function ogrenciListesiGuncelle() {
@@ -278,7 +293,7 @@ function ogrenciAdiniDuzenle() {
         veriyiKaydet();
         yeniAdInput.value = ''; 
         
-        tumVerileriGuncelle(); // Tüm arayüzü güncelle
+        tumVerileriGuncelle(); 
         alert(`${eskiAd} öğrencisinin adı başarıyla ${yeniAd} olarak güncellendi.`);
     } else {
         alert("Öğrenci bulunamadı.");
@@ -295,7 +310,7 @@ function sinifiSil() {
         delete siniflar[silinecekSinif];
         veriyiKaydet();
 
-        tumVerileriGuncelle(); // Tüm arayüzü tek bir komutla güncelle
+        tumVerileriGuncelle(); 
         
         alert(`${silinecekSinif} sınıfı başarıyla silindi.`);
     }
@@ -332,6 +347,5 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     // 5. TÜM VERİLERİ VE ARAYÜZÜ İLK KEZ GÜNCELLE
-    // Tüm select listeleri, aktif sınıf ve tablolar bu komutla yüklenen veriye göre ayarlanır.
     tumVerileriGuncelle();
 });
