@@ -23,8 +23,8 @@ let mevcutGruplar = [];
 let seciliSinif = "10-A"; 
 
 
-// --- KALICILIK YÖNETİMİ (LOCALSTORAGE) - HATA KONTROLÜ EKLENDİ ---
-
+// --- KALICILIK YÖNETİMİ (LOCALSTORAGE) ---
+// Bu fonksiyon, siniflar objesini JSON formatında tarayıcının yerel depolama alanına kaydeder.
 function veriyiKaydet() {
     localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
 }
@@ -33,18 +33,14 @@ function veriyiYukle() {
     const kayitliVeri = localStorage.getItem('sinifVerileri');
     if (kayitliVeri) {
         try {
-            // Veriyi çözmeye çalış
             const parsedData = JSON.parse(kayitliVeri);
             
-            // Çözülen verinin geçerli bir obje olduğundan emin ol
             if (typeof parsedData === 'object' && parsedData !== null) {
                 Object.assign(siniflar, parsedData);
                 return true;
             }
         } catch (e) {
-            // Eğer JSON.parse hatası oluşursa (veri bozuksa)
-            console.error("Local storage verisi bozuk veya geçersiz. Varsayılan veriler kullanılacak.", e);
-            // Bozuk veriyi temizleyebiliriz
+            console.error("Local storage verisi bozuk. Varsayılan veriler kullanılacak.", e);
             localStorage.removeItem('sinifVerileri'); 
         }
     }
@@ -60,6 +56,7 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
+    // Rastgele karıştırma
     for (let i = aktifOgrenciler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
@@ -122,7 +119,8 @@ function devamsizligiDegistir(ad) {
     if (ogrenci) {
         ogrenci.devamsiz = !ogrenci.devamsiz;
     }
-    veriyiKaydet();
+    // Veri değişti: Anında kaydet
+    veriyiKaydet(); 
     devamsizlikListesiniGuncelle();
     gruplariOlustur();
 }
@@ -162,6 +160,7 @@ function puanEklemeButonu(puanDegeri) {
         mevcutGruplar[grupIndex].uyeler[uyeIndex].puan += puanDegeri;
     });
 
+    // Veri değişti: Anında kaydet
     veriyiKaydet();
     grupTablolariniGuncelle(); 
 }
@@ -179,10 +178,8 @@ function sinifSelectleriniDoldur() {
         document.getElementById('silinecekSinifSecim')
     ];
     
-    // Tüm select elementlerini temizle
     selects.forEach(select => select.innerHTML = '');
 
-    // Listeleri doldur
     sinifListesi.forEach(sinif => {
         selects.forEach(select => {
             const option = document.createElement('option');
@@ -206,13 +203,14 @@ function yeniOgrenciEkle() {
     const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
     siniflar[hedefSinif].push(yeniOgrenci);
     
+    // Veri değişti: Anında kaydet
     veriyiKaydet(); 
     
     alert(`${ad}, ${hedefSinif} sınıfına başarıyla eklendi ve kaydedildi!`);
     
     adInput.value = ''; 
     grupTablolariniGuncelle();
-    ogrenciListesiGuncelle(); // Yeni öğrenci eklenince yönetim listesini de güncelle
+    ogrenciListesiGuncelle(); 
 }
 
 function ogrenciListesiGuncelle() {
@@ -243,6 +241,7 @@ function ogrenciAdiniDuzenle() {
     if (ogrenci) {
         ogrenci.ad = yeniAd; 
         
+        // Veri değişti: Anında kaydet
         veriyiKaydet();
         yeniAdInput.value = ''; 
         
@@ -263,9 +262,10 @@ function sinifiSil() {
     if (confirm(`${silinecekSinif} sınıfını ve tüm öğrencilerini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
         
         delete siniflar[silinecekSinif];
+        
+        // Veri değişti: Anında kaydet
         veriyiKaydet();
 
-        // Tüm listeleri ve arayüzü güncelle
         sinifSelectleriniDoldur(); 
         mevcutGruplar = [];
         grupTablolariniGuncelle();
@@ -285,7 +285,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // 2. Sınıf Seçme Menülerini Doldur
-    // Bu fonksiyon, siniflar objesinin içeriğiyle tüm select'leri doldurur.
     sinifSelectleriniDoldur(); 
     
     // 3. Kontrol Alanı (sinifSecimi) için değişim olayını ayarla
@@ -296,7 +295,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grupTablolariniGuncelle();
     };
     
-    // İlk yüklendiğinde varsayılan sınıfı ve seçili sınıf değişkenini ayarla
+    // İlk yüklendiğinde varsayılan sınıfı ayarla
     seciliSinif = sinifSecimElementi.value || Object.keys(siniflar)[0];
 
 
