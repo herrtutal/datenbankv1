@@ -24,7 +24,7 @@ let seciliSinif = "10-A";
 
 
 // --- KALICILIK YÖNETİMİ (LOCALSTORAGE) ---
-// Bu fonksiyon, siniflar objesini JSON formatında tarayıcının yerel depolama alanına kaydeder.
+
 function veriyiKaydet() {
     localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
 }
@@ -53,6 +53,7 @@ function veriyiYukle() {
 function gruplariOlustur() {
     const grupSayisi = parseInt(document.getElementById('grupSayisi').value);
     if (grupSayisi < 2) return alert("Grup sayısı en az 2 olmalıdır.");
+    if (!seciliSinif || !siniflar[seciliSinif]) return; // Sınıf seçili değilse dur
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
@@ -78,48 +79,53 @@ function gruplariOlustur() {
 function grupTablolariniGuncelle() {
     const container = document.getElementById('gruplar-container');
     container.innerHTML = ''; 
-
-    if (mevcutGruplar.length > 0) {
-        mevcutGruplar.forEach((grup, gIndex) => {
-            const grupDiv = document.createElement('div');
-            grupDiv.className = 'grup-karti';
-            grupDiv.innerHTML = `<h3>${grup.ad}</h3>`;
-            
-            const tablo = document.createElement('table');
-            tablo.innerHTML = `
-                <thead>
-                    <tr>
-                        <th>Seç</th>
-                        <th>Öğrenci Adı</th>
-                        <th>Puan</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    ${grup.uyeler.map((uye, uIndex) => `
-                        <tr>
-                            <td><input type="checkbox" value="${gIndex}-${uIndex}"></td>
-                            <td>${uye.ad}</td>
-                            <td>${uye.puan}</td>
-                        </tr>
-                    `).join('')}
-                </tbody>
-            `;
-            grupDiv.appendChild(tablo);
-            container.appendChild(grupDiv);
-        });
-    } else {
-        container.innerHTML = "<p>Grupları görmek için lütfen yukarıdan sınıf seçip grupları oluşturun.</p>";
+    
+    // Sınıf seçili değilse veya gruplar boşsa
+    if (!seciliSinif || mevcutGruplar.length === 0) {
+        container.innerHTML = "<p>Lütfen yukarıdan bir sınıf seçin ve grupları oluşturun.</p>";
+        devamsizlikListesiniGuncelle();
+        return;
     }
 
+    mevcutGruplar.forEach((grup, gIndex) => {
+        const grupDiv = document.createElement('div');
+        grupDiv.className = 'grup-karti';
+        grupDiv.innerHTML = `<h3>${grup.ad}</h3>`;
+        
+        const tablo = document.createElement('table');
+        tablo.innerHTML = `
+            <thead>
+                <tr>
+                    <th>Seç</th>
+                    <th>Öğrenci Adı</th>
+                    <th>Puan</th>
+                </tr>
+            </thead>
+            <tbody>
+                ${grup.uyeler.map((uye, uIndex) => `
+                    <tr>
+                        <td><input type="checkbox" value="${gIndex}-${uIndex}"></td>
+                        <td>${uye.ad}</td>
+                        <td>${uye.puan}</td>
+                    </tr>
+                `).join('')}
+            </tbody>
+        `;
+        grupDiv.appendChild(tablo);
+        container.appendChild(grupDiv);
+    });
+    
     devamsizlikListesiniGuncelle();
 }
 
 function devamsizligiDegistir(ad) {
+    if (!seciliSinif || !siniflar[seciliSinif]) return; // Sınıf seçili değilse dur
+    
     const ogrenci = siniflar[seciliSinif].find(o => o.ad === ad);
     if (ogrenci) {
         ogrenci.devamsiz = !ogrenci.devamsiz;
     }
-    // Veri değişti: Anında kaydet
+    
     veriyiKaydet(); 
     devamsizlikListesiniGuncelle();
     gruplariOlustur();
@@ -129,20 +135,20 @@ function devamsizlikListesiniGuncelle() {
      const devamsizDiv = document.getElementById('devamsiz-listesi');
      devamsizDiv.innerHTML = ''; 
 
+     if (!seciliSinif || !siniflar[seciliSinif]) return;
+
      const liste = document.createElement('ul');
-     if (siniflar[seciliSinif]) {
-        liste.innerHTML = siniflar[seciliSinif].map(ogrenci => `
-            <li>
-                <input type="checkbox" 
-                       onchange="devamsizligiDegistir('${ogrenci.ad}')"
-                       ${ogrenci.devamsiz ? 'checked' : ''}>
-                ${ogrenci.ad} 
-                <span class="${ogrenci.devamsiz ? 'devamsiz' : 'aktif'}">
-                    ${ogrenci.devamsiz ? '(Devamsız)' : '(Aktif)'}
-                </span>
-            </li>
-        `).join('');
-     }
+     liste.innerHTML = siniflar[seciliSinif].map(ogrenci => `
+         <li>
+             <input type="checkbox" 
+                    onchange="devamsizligiDegistir('${ogrenci.ad}')"
+                    ${ogrenci.devamsiz ? 'checked' : ''}>
+             ${ogrenci.ad} 
+             <span class="${ogrenci.devamsiz ? 'devamsiz' : 'aktif'}">
+                 ${ogrenci.devamsiz ? '(Devamsız)' : '(Aktif)'}
+             </span>
+         </li>
+     `).join('');
      devamsizDiv.appendChild(liste);
 }
 
@@ -156,11 +162,9 @@ function puanEklemeButonu(puanDegeri) {
     secilenler.forEach(checkbox => {
         const [grupIndex, uyeIndex] = checkbox.value.split('-').map(Number);
         
-        // Puanı güncelle
         mevcutGruplar[grupIndex].uyeler[uyeIndex].puan += puanDegeri;
     });
 
-    // Veri değişti: Anında kaydet
     veriyiKaydet();
     grupTablolariniGuncelle(); 
 }
@@ -203,7 +207,6 @@ function yeniOgrenciEkle() {
     const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
     siniflar[hedefSinif].push(yeniOgrenci);
     
-    // Veri değişti: Anında kaydet
     veriyiKaydet(); 
     
     alert(`${ad}, ${hedefSinif} sınıfına başarıyla eklendi ve kaydedildi!`);
@@ -241,7 +244,6 @@ function ogrenciAdiniDuzenle() {
     if (ogrenci) {
         ogrenci.ad = yeniAd; 
         
-        // Veri değişti: Anında kaydet
         veriyiKaydet();
         yeniAdInput.value = ''; 
         
@@ -254,19 +256,33 @@ function ogrenciAdiniDuzenle() {
     }
 }
 
+// KRİTİK DÜZELTME BU FONKSİYONDA YAPILMIŞTIR
 function sinifiSil() {
     const silinecekSinif = document.getElementById('silinecekSinifSecim').value;
+    const sinifSecimElementi = document.getElementById('sinifSecimi');
 
     if (!silinecekSinif) return alert("Lütfen silmek istediğiniz sınıfı seçin.");
 
     if (confirm(`${silinecekSinif} sınıfını ve tüm öğrencilerini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
         
+        // 1. Sınıfı sil ve kaydet
         delete siniflar[silinecekSinif];
-        
-        // Veri değişti: Anında kaydet
         veriyiKaydet();
 
+        // 2. Tüm select listelerini yeniden doldur (silinen sınıf listeden kalkar)
         sinifSelectleriniDoldur(); 
+        
+        // 3. Yeni bir seciliSinif belirle
+        const kalanSiniflar = Object.keys(siniflar);
+        if (kalanSiniflar.length > 0) {
+            seciliSinif = kalanSiniflar[0]; // Kalan ilk sınıfı yeni aktif sınıf yap
+            sinifSecimElementi.value = seciliSinif; // Ana seçim kutusunu da güncelle
+        } else {
+            seciliSinif = null; // Hiç sınıf kalmadıysa null yap
+            sinifSecimElementi.value = '';
+        }
+
+        // 4. Grupları ve arayüzü güncelle
         mevcutGruplar = [];
         grupTablolariniGuncelle();
         ogrenciListesiGuncelle(); 
@@ -295,15 +311,15 @@ document.addEventListener('DOMContentLoaded', () => {
         grupTablolariniGuncelle();
     };
     
-    // İlk yüklendiğinde varsayılan sınıfı ayarla
+    // 4. İlk yüklendiğinde varsayılan sınıfı ayarla
     seciliSinif = sinifSecimElementi.value || Object.keys(siniflar)[0];
 
 
-    // 4. Yönetim Alanı (duzenlenecekSinifSecim) için değişim olayını ayarla
+    // 5. Yönetim Alanı (duzenlenecekSinifSecim) için değişim olayını ayarla
     const duzenlenecekSinifSecimElementi = document.getElementById('duzenlenecekSinifSecim');
     duzenlenecekSinifSecimElementi.onchange = ogrenciListesiGuncelle;
     
-    // 5. Puan Butonlarını Oluştur
+    // 6. Puan Butonlarını Oluştur
     const puanButonlariContainer = document.getElementById('puan-butonlari');
     PUAN_BUTONLARI.forEach(btn => {
         const button = document.createElement('button');
@@ -312,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
         puanButonlariContainer.appendChild(button);
     });
     
-    // 6. Başlangıçta öğrenci düzenleme listesini yükle ve tabloları çiz
+    // 7. Başlangıçta öğrenci düzenleme listesini yükle ve tabloları çiz
     ogrenciListesiGuncelle();
     grupTablolariniGuncelle();
 });
