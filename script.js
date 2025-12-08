@@ -23,29 +23,54 @@ const PUAN_BUTONLARI = [
 ];
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Sınıf Seçimini Doldur
-    const sinifSecimElementi = document.getElementById('sinifSecimi');
-    Object.keys(siniflar).forEach(sinif => {
-        const option = document.createElement('option');
-        option.value = sinif;
-        option.textContent = sinif;
-        sinifSecimElementi.appendChild(option);
-    });
-    sinifSecimElementi.onchange = (e) => {
-        seciliSinif = e.target.value;
-        mevcutGruplar = []; // Sınıf değişince grupları sıfırla
-        grupTablolariniGuncelle();
-    };
+    // 1. Kalıcı veriyi yükle (eğer varsa)
+    veriyiYukle(); 
 
-    // Puan Butonlarını Oluştur
-    const puanButonlariContainer = document.getElementById('puan-butonlari');
-    PUAN_BUTONLARI.forEach(btn => {
-        const button = document.createElement('button');
-        button.textContent = btn.etiket;
-        button.onclick = () => puanEklemeButonu(btn.deger);
-        puanButonlariContainer.appendChild(button);
+    // 2. Kontrol Alanındaki Sınıf Seçimini Doldur (mevcut kodunuz)
+    const sinifSecimElementi = document.getElementById('sinifSecimi');
+    // ... (sinifSecimi doldurma kodları) ...
+
+    // 3. YENİ: Veri Ekleme Alanındaki Hedef Sınıf Seçimini Doldur
+    const hedefSinifSecimElementi = document.getElementById('hedefSinifSecimi');
+    Object.keys(siniflar).forEach(sinif => {
+        const option1 = document.createElement('option');
+        option1.value = sinif;
+        option1.textContent = sinif;
+        sinifSecimElementi.appendChild(option1); // Kontrol alanı için
+        
+        const option2 = document.createElement('option');
+        option2.value = sinif;
+        option2.textContent = sinif;
+        hedefSinifSecimElementi.appendChild(option2); // Ekleme alanı için
     });
+    
+    // ... (diğer başlangıç kodları: sinifSecimi.onchange ve Puan Butonları) ...
 });
+function yeniOgrenciEkle() {
+    const adInput = document.getElementById('yeniOgrenciAd');
+    const hedefSinif = document.getElementById('hedefSinifSecimi').value;
+    const ad = adInput.value.trim();
+
+    if (!ad || !hedefSinif || !siniflar[hedefSinif]) {
+        alert("Lütfen geçerli bir öğrenci adı girin ve bir sınıf seçin.");
+        return;
+    }
+
+    // Yeni öğrenci objesi (başlangıçta devamsız değil ve puanı 0)
+    const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
+    
+    // Sınıf listesine ekle
+    siniflar[hedefSinif].push(yeniOgrenci);
+    
+    // Veriyi tarayıcıya kaydet
+    veriyiKaydet(); 
+    
+    alert(`${ad}, ${hedefSinif} sınıfına başarıyla eklendi ve kaydedildi!`);
+    
+    // Arayüzü temizle ve tabloları güncelle
+    adInput.value = ''; 
+    grupTablolariniGuncelle();
+}
 // Örnek öğrenci verisi (Excel'den aktarılmış/sadeleştirilmiş)
 const siniflar = {
     "10-A": [
@@ -202,4 +227,17 @@ function yeniOgrenciEkle() {
     
     // Sınıf seçim listesini ve tabloları güncelleyin
     grupTablolariniGuncelle(); 
+}
+// Veriyi localStorage'a kaydetme
+function veriyiKaydet() {
+    localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
+}
+
+// Veriyi localStorage'dan yükleme
+function veriyiYukle() {
+    const kayitliVeri = localStorage.getItem('sinifVerileri');
+    if (kayitliVeri) {
+        // Kayıtlı veri varsa, mevcut siniflar objesinin üzerine yaz
+        Object.assign(siniflar, JSON.parse(kayitliVeri));
+    }
 }
