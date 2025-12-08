@@ -53,7 +53,7 @@ function veriyiYukle() {
 function gruplariOlustur() {
     const grupSayisi = parseInt(document.getElementById('grupSayisi').value);
     if (grupSayisi < 2) return alert("Grup sayısı en az 2 olmalıdır.");
-    if (!seciliSinif || !siniflar[seciliSinif]) return; // Sınıf seçili değilse dur
+    if (!seciliSinif || !siniflar[seciliSinif]) return;
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
@@ -80,7 +80,6 @@ function grupTablolariniGuncelle() {
     const container = document.getElementById('gruplar-container');
     container.innerHTML = ''; 
     
-    // Sınıf seçili değilse veya gruplar boşsa
     if (!seciliSinif || mevcutGruplar.length === 0) {
         container.innerHTML = "<p>Lütfen yukarıdan bir sınıf seçin ve grupları oluşturun.</p>";
         devamsizlikListesiniGuncelle();
@@ -119,7 +118,7 @@ function grupTablolariniGuncelle() {
 }
 
 function devamsizligiDegistir(ad) {
-    if (!seciliSinif || !siniflar[seciliSinif]) return; // Sınıf seçili değilse dur
+    if (!seciliSinif || !siniflar[seciliSinif]) return;
     
     const ogrenci = siniflar[seciliSinif].find(o => o.ad === ad);
     if (ogrenci) {
@@ -256,7 +255,6 @@ function ogrenciAdiniDuzenle() {
     }
 }
 
-// KRİTİK DÜZELTME BU FONKSİYONDA YAPILMIŞTIR
 function sinifiSil() {
     const silinecekSinif = document.getElementById('silinecekSinifSecim').value;
     const sinifSecimElementi = document.getElementById('sinifSecimi');
@@ -265,24 +263,20 @@ function sinifiSil() {
 
     if (confirm(`${silinecekSinif} sınıfını ve tüm öğrencilerini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
         
-        // 1. Sınıfı sil ve kaydet
         delete siniflar[silinecekSinif];
         veriyiKaydet();
 
-        // 2. Tüm select listelerini yeniden doldur (silinen sınıf listeden kalkar)
         sinifSelectleriniDoldur(); 
         
-        // 3. Yeni bir seciliSinif belirle
         const kalanSiniflar = Object.keys(siniflar);
         if (kalanSiniflar.length > 0) {
-            seciliSinif = kalanSiniflar[0]; // Kalan ilk sınıfı yeni aktif sınıf yap
-            sinifSecimElementi.value = seciliSinif; // Ana seçim kutusunu da güncelle
+            seciliSinif = kalanSiniflar[0]; 
+            sinifSecimElementi.value = seciliSinif;
         } else {
-            seciliSinif = null; // Hiç sınıf kalmadıysa null yap
+            seciliSinif = null; 
             sinifSecimElementi.value = '';
         }
 
-        // 4. Grupları ve arayüzü güncelle
         mevcutGruplar = [];
         grupTablolariniGuncelle();
         ogrenciListesiGuncelle(); 
@@ -311,7 +305,7 @@ document.addEventListener('DOMContentLoaded', () => {
         grupTablolariniGuncelle();
     };
     
-    // 4. İlk yüklendiğinde varsayılan sınıfı ayarla
+    // 4. İlk yüklendiğinde varsayılan sınıfı/seçili sınıfı ayarla (Veri yüklenmiş olsa bile)
     seciliSinif = sinifSecimElementi.value || Object.keys(siniflar)[0];
 
 

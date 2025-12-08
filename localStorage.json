@@ -1,17 +1,30 @@
-function veriyiKaydet() {
-    // 'siniflar' objesini JSON formatında kaydet
-    localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
-}
-function veriyiYukle() {
-    const kayitliVeri = localStorage.getItem('sinifVerileri');
-    if (kayitliVeri) {
-        // Kayıtlı veri varsa, mevcut siniflar objesinin üzerine yaz
-        Object.assign(siniflar, JSON.parse(kayitliVeri));
+{
+  "10-A": [
+    {
+      "ad": "Ahmet Yılmaz",
+      "devamsiz": false,
+      "puan": 0
+    },
+    {
+      "ad": "Ayşe Kaya",
+      "devamsiz": false,
+      "puan": 0
+    },
+    {
+      "ad": "Burak Demir",
+      "devamsiz": false,
+      "puan": 0
     }
+  ],
+  "11-B": [],
+  "5A": [],
+  "5B": [],
+  "5C": [],
+  "5D": [],
+  "5E": [],
+  "5F": [],
+  "6A": [],
+  "6B": [],
+  "6E": [],
+  "6F": []
 }
-
-// script.js dosyasının başında veriyi yükleyin
-document.addEventListener('DOMContentLoaded', () => {
-    veriyiYukle(); 
-    // ... diğer başlangıç kodları ...
-});
