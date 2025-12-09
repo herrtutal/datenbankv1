@@ -11,18 +11,89 @@
     </header>
 
     <nav>
-        <a href="index.html">Giriş</a> | 
+        <a href="index.html">Yönetici Paneli</a> | 
         <a href="student.html">Öğrenci Sayfası</a>
     </nav>
-    
+
     <main id="admin-paneli">
         <section id="kontrol-alani">
             <h2>Grup Oluşturma</h2>
             <label for="sinifSecimi">Sınıf Seçin:</label>
             <select id="sinifSecimi"></select>
-            </section>
+
+            <label for="grupSayisi">Grup Sayısı:</label>
+            <input type="number" id="grupSayisi" min="2" value="4">
+
+            <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt ve Kaydet</button>
+            <button onclick="tumVerileriGuncelle()" class="refresh-btn">Verileri Yenile/Güncelle</button>
+        </section>
+
+        <hr>
+
+        <section id="islemler-alani">
+            <h2>Puanlama ve Devamsızlık İşlemleri</h2>
+            <div id="puan-butonlari">
+                </div>
+            
+            <h3>Devamsızlık Takibi (Gruplara Dahil Olmaz)</h3>
+            <div id="devamsiz-listesi">
+                </div>
+        </section>
         
-        </main>
+        <hr>
+
+        <section id="grup-tablolari">
+            <h2>Gruplar ve Puanlar</h2>
+            <div id="gruplar-container">
+                </div>
+        </section>
+
+        <hr>
+
+        <section id="veri-ekleme-alani">
+            <h2>➕ Öğrenci Ekle</h2>
+            <div class="form-group">
+                <label for="yeniOgrenciAd">Öğrenci Adı:</label>
+                <input type="text" id="yeniOgrenciAd" placeholder="Öğrencinin Adı Soyadı" required>
+            </div>
+            <div class="form-group">
+                <label for="hedefSinifSecimi">Hedef Sınıf:</label>
+                <select id="hedefSinifSecimi"></select>
+            </div>
+            <button onclick="yeniOgrenciEkle()">Sınıfa Ekle</button>
+        </section>
+        
+        <hr>
+
+        <section id="yonetim-alani">
+            <h2>🛠️ Yönetim İşlemleri</h2>
+
+            <h3>Öğrenci Adı Düzenle</h3>
+            <div class="form-group">
+                <label for="duzenlenecekSinifSecim">Sınıf Seç:</label>
+                <select id="duzenlenecekSinifSecim"></select>
+            </div>
+            <div class="form-group">
+                <label for="duzenlenecekOgrenci">Öğrenci Seç:</label>
+                <select id="duzenlenecekOgrenci"></select>
+            </div>
+            <div class="form-group">
+                <label for="yeniOgrenciAdDuzenle">Yeni Ad:</label>
+                <input type="text" id="yeniOgrenciAdDuzenle" placeholder="Yeni Öğrenci Adı Soyadı">
+                <button onclick="ogrenciAdiniDuzenle()">Adı Güncelle</button>
+            </div>
+
+            <hr>
+            
+            <h3>Sınıfı Sil</h3>
+            <p>Seçilen sınıfı ve tüm öğrencilerini sistemden kalıcı olarak siler.</p>
+            <div class="form-group">
+                <label for="silinecekSinifSecim">Silinecek Sınıf:</label>
+                <select id="silinecekSinifSecim"></select>
+                <button onclick="sinifiSil()" class="delete-btn">Sınıfı Sil (Kalıcı)</button>
+            </div>
+        </section>
+    </main>
 
     <script src="script.js"></script>
 </body>
