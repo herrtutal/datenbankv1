@@ -2,15 +2,20 @@
 <html lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Grup ve Puan Yönetim Sistemi</title>
+    <title>Yönetici Paneli - Grup ve Puan Yönetimi</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
-        <h1>Grup ve Puan Yönetim Sistemi</h1>
+        <h1>Yönetici Paneli</h1>
     </header>
 
-    <main>
+    <nav>
+        <a href="admin.html">Yönetici Paneli</a> | 
+        <a href="student.html">Öğrenci Sayfası</a>
+    </nav>
+
+    <main id="admin-paneli">
         <section id="kontrol-alani">
             <h2>Grup Oluşturma</h2>
             <label for="sinifSecimi">Sınıf Seçin:</label>
@@ -19,7 +24,7 @@
             <label for="grupSayisi">Grup Sayısı:</label>
             <input type="number" id="grupSayisi" min="2" value="4">
 
-            <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt</button>
+            <button onclick="gruplariOlustur()">Grupları Rastgele Dağıt ve Kaydet</button>
             <button onclick="tumVerileriGuncelle()" class="refresh-btn">Verileri Yenile/Güncelle</button>
         </section>
 
@@ -35,6 +40,14 @@
                 </div>
         </section>
         
+        <hr>
+
+        <section id="grup-tablolari">
+            <h2>Gruplar ve Puanlar</h2>
+            <div id="gruplar-container">
+                </div>
+        </section>
+
         <hr>
 
         <section id="veri-ekleme-alani">
@@ -58,7 +71,7 @@
             <h3>Öğrenci Adı Düzenle</h3>
             <div class="form-group">
                 <label for="duzenlenecekSinifSecim">Sınıf Seç:</label>
-                <select id="duzenlenecekSinifSecim" onchange="ogrenciListesiGuncelle()"></select>
+                <select id="duzenlenecekSinifSecim"></select>
             </div>
             <div class="form-group">
                 <label for="duzenlenecekOgrenci">Öğrenci Seç:</label>
@@ -79,14 +92,6 @@
                 <select id="silinecekSinifSecim"></select>
                 <button onclick="sinifiSil()" class="delete-btn">Sınıfı Sil (Kalıcı)</button>
             </div>
-        </section>
-
-        <hr>
-
-        <section id="grup-tablolari">
-            <h2>Gruplar ve Puanlar</h2>
-            <div id="gruplar-container">
-                </div>
         </section>
     </main>
 

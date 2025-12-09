@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <title>Öğrenci Sayfası - Puan ve Grup Durumu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header>
+        <h1>Öğrenci Sayfası</h1>
+    </header>
+
+    <nav>
+        <a href="admin.html">Yönetici Paneli</a> | 
+        <a href="student.html">Öğrenci Sayfası</a>
+    </nav>
+
+    <main id="ogrenci-sayfasi">
+        <section id="ogrenci-kontrol">
+            <h2>Sınıfınızı Seçin</h2>
+            <label for="ogrenciSinifSecimi">Sınıf Seç:</label>
+            <select id="ogrenciSinifSecimi"></select>
+            <button onclick="tumVerileriGuncelle()" class="refresh-btn">Verileri Yenile/Güncelle</button>
+        </section>
+
+        <hr>
+
+        <section id="siralama">
+            <div id="siralama-listesi">
+                <p>Sınıfınızı seçtikten sonra güncel puan sıralamasını görebilirsiniz.</p>
+            </div>
+        </section>
+
+        <hr>
+
+        <section id="gruplama">
+            <div id="grup-gosterim-alani">
+                <p>Sınıfınız için oluşturulan grupları görebilirsiniz.</p>
+            </div>
+        </section>
+    </main>
+
+    <script src="script.js"></script>
+</body>
+</html>
