@@ -2,9 +2,9 @@
 
 const BASE_SINIFLAR = {
     "10-A": [ 
-        { ad: "Ahmet Yılmaz", devamsiz: false, puan: 0 },
-        { ad: "Ayşe Kaya", devamsiz: false, puan: 0 },
-        { ad: "Burak Demir", devamsiz: false, puan: 0 }
+        { ad: "Ahmet Yılmaz", devamsiz: false, puan: 50 },
+        { ad: "Ayşe Kaya", devamsiz: false, puan: 35 },
+        { ad: "Burak Demir", devamsiz: false, puan: 40 }
     ],
     "11-B": [],
     "5A": [], "5B": [], "5C": [], "5D": [], "5E": [], "5F": [],
@@ -19,7 +19,7 @@ const PUAN_BUTONLARI = [
 ];
 
 let siniflar = {};
-let mevcutGruplar = [];
+let mevcutGruplar = []; // Artık bu değişkenin verisi de LocalStorage'da tutulacak.
 let seciliSinif = "10-A"; 
 
 
@@ -27,7 +27,12 @@ let seciliSinif = "10-A";
 
 function veriyiKaydet() {
     try {
-        localStorage.setItem('sinifVerileri', JSON.stringify(siniflar));
+        // Sınıfları ve mevcut grupları tek bir obje içinde kaydet
+        const kayitObjesi = {
+            siniflar: siniflar,
+            gruplar: mevcutGruplar 
+        };
+        localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
     } catch (e) {
         console.error("Local storage'a veri kaydedilirken bir hata oluştu:", e);
     }
@@ -39,8 +44,10 @@ function veriyiYukle() {
         try {
             const parsedData = JSON.parse(kayitliVeri);
             
-            if (typeof parsedData === 'object' && parsedData !== null) {
-                Object.assign(siniflar, parsedData);
+            if (typeof parsedData === 'object' && parsedData !== null && parsedData.siniflar) {
+                // Sınıfları ve grupları yükle
+                Object.assign(siniflar, parsedData.siniflar);
+                mevcutGruplar = parsedData.gruplar || []; 
                 return true;
             }
         } catch (e) {
@@ -54,53 +61,48 @@ function veriyiYukle() {
 
 // --- GENEL GÜNCELLEME İŞLEVİ ---
 
-/**
- * Tüm sınıf seçme menülerini, aktif sınıf değişkenini ve tablo/listeleri günceller.
- * Bu fonksiyon "Verileri Yenile/Güncelle" butonunun çalışmasını sağlar.
- */
 function tumVerileriGuncelle() {
-    // 1. Sınıf Seçme Menülerini Doldur (Yeni/Silinen sınıfları listeler)
+    // 1. Sınıf Select Menülerini Doldur (Hepsini)
     sinifSelectleriniDoldur(); 
 
     const kalanSiniflar = Object.keys(siniflar);
 
-    // 2. Aktif sınıfı güvenli bir şekilde belirle (Eski sınıf yoksa, ilkini seç)
+    // 2. Aktif sınıfı güvenli bir şekilde belirle
     let yeniSeciliSinif = null;
-    
     if (seciliSinif && kalanSiniflar.includes(seciliSinif)) {
         yeniSeciliSinif = seciliSinif;
     } else if (kalanSiniflar.length > 0) {
         yeniSeciliSinif = kalanSiniflar[0];
     }
-    
-    // 3. Global değişkeni ve **TÜM İLGİLİ SELECT KUTULARINI** yeni değerle ayarla
     seciliSinif = yeniSeciliSinif;
     
-    const elementsToUpdate = [
-        document.getElementById('sinifSecimi'),
-        document.getElementById('duzenlenecekSinifSecim'),
-        document.getElementById('hedefSinifSecimi'),
-        document.getElementById('silinecekSinifSecim')
-    ];
-
+    // 3. İlgili Select kutularının değerlerini ayarla (yalnızca varsa)
+    const selects = ['sinifSecimi', 'duzenlenecekSinifSecim', 'hedefSinifSecimi', 'silinecekSinifSecim', 'ogrenciSinifSecimi'];
     const valueToSet = seciliSinif || ''; 
     
-    elementsToUpdate.forEach(el => {
-        if (el) { // Elementin var olduğundan emin ol
-            el.value = valueToSet; // Değeri ata
+    selects.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.value = valueToSet;
         }
     });
-    
-    // 4. Grupları sıfırla ve arayüzü çiz
-    mevcutGruplar = [];
-    ogrenciListesiGuncelle();
-    grupTablolariniGuncelle();
+
+    // 4. Sayfaya özgü arayüz güncellemelerini çağır
+    if (document.getElementById('admin-paneli')) {
+        // Yönetici (Admin) sayfası
+        ogrenciListesiGuncelle();
+        grupTablolariniGuncelle();
+    } else if (document.getElementById('ogrenci-sayfasi')) {
+        // Öğrenci sayfası
+        ogrenciSiralamaGoster(); // Sıralama tablosunu göster
+        ogrenciGrupGoster(); // Grup tablosunu göster
+    }
     
     console.log("Tüm arayüz verileri güncellendi. Yeni Seçili Sınıf:", seciliSinif);
 }
 
 
-// --- SINIF VE GRUP İŞLEVLERİ ---
+// --- SINIF VE GRUP İŞLEVLERİ (Admin Sayfası için) ---
 
 function gruplariOlustur() {
     const grupSayisi = parseInt(document.getElementById('grupSayisi').value);
@@ -109,35 +111,48 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
+    // Rastgele karıştırma
     for (let i = aktifOgrenciler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
     }
 
-    mevcutGruplar = Array.from({ length: grupSayisi }, (_, i) => ({ 
+    const yeniGruplar = Array.from({ length: grupSayisi }, (_, i) => ({ 
         ad: `Grup ${i + 1}`, 
+        sinif: seciliSinif, // Hangi sınıfa ait olduğunu kaydetmek için
         uyeler: [] 
     }));
 
     aktifOgrenciler.forEach((ogrenci, index) => {
         const grupIndex = index % grupSayisi;
-        mevcutGruplar[grupIndex].uyeler.push(ogrenci);
+        yeniGruplar[grupIndex].uyeler.push(ogrenci);
     });
 
+    // Sadece bu sınıfa ait grupları güncelle ve yeni grupları ekle
+    mevcutGruplar = mevcutGruplar.filter(g => g.sinif !== seciliSinif);
+    mevcutGruplar.push(...yeniGruplar);
+    
+    veriyiKaydet(); // Grupları kaydet
     grupTablolariniGuncelle();
 }
 
+// ... (Diğer Admin fonksiyonları: grupTablolariniGuncelle, devamsizligiDegistir, puanEklemeButonu, sinifSelectleriniDoldur, yeniOgrenciEkle, ogrenciListesiGuncelle, ogrenciAdiniDuzenle, sinifiSil - hepsi tumVerileriGuncelle çağıracak şekilde güncellendi) ...
+
 function grupTablolariniGuncelle() {
     const container = document.getElementById('gruplar-container');
+    if (!container) return; // Admin panelinde değilse devam etme
     container.innerHTML = ''; 
     
-    if (!seciliSinif || mevcutGruplar.length === 0) {
+    // Yalnızca seçili sınıfa ait grupları göster
+    const seciliSinifGruplari = mevcutGruplar.filter(g => g.sinif === seciliSinif);
+    
+    if (!seciliSinif || seciliSinifGruplari.length === 0) {
         container.innerHTML = "<p>Lütfen yukarıdan bir sınıf seçin ve grupları oluşturun.</p>";
         devamsizlikListesiniGuncelle();
         return;
     }
 
-    mevcutGruplar.forEach((grup, gIndex) => {
+    seciliSinifGruplari.forEach((grup, gIndex) => {
         const grupDiv = document.createElement('div');
         grupDiv.className = 'grup-karti';
         grupDiv.innerHTML = `<h3>${grup.ad}</h3>`;
@@ -178,11 +193,13 @@ function devamsizligiDegistir(ad) {
     
     veriyiKaydet(); 
     devamsizlikListesiniGuncelle();
-    gruplariOlustur();
+    // Gruplar değiştiği için tekrar oluşturmaya gerek yok, sadece listeden çıkarıldı
+    grupTablolariniGuncelle(); 
 }
 
 function devamsizlikListesiniGuncelle() {
      const devamsizDiv = document.getElementById('devamsiz-listesi');
+     if (!devamsizDiv) return;
      devamsizDiv.innerHTML = ''; 
 
      if (!seciliSinif || !siniflar[seciliSinif]) return;
@@ -203,24 +220,28 @@ function devamsizlikListesiniGuncelle() {
 }
 
 
-// --- PUANLAMA İŞLEVİ ---
-
 function puanEklemeButonu(puanDegeri) {
     const secilenler = document.querySelectorAll('#gruplar-container input[type="checkbox"]:checked');
     if (secilenler.length === 0) return alert("Önce puan verilecek öğrenci(ler)i seçin.");
 
+    const seciliSinifGruplari = mevcutGruplar.filter(g => g.sinif === seciliSinif);
+
     secilenler.forEach(checkbox => {
         const [grupIndex, uyeIndex] = checkbox.value.split('-').map(Number);
         
-        mevcutGruplar[grupIndex].uyeler[uyeIndex].puan += puanDegeri;
+        // Puanı hem geçici grupta hem de kalıcı siniflar objesinde güncelle
+        const gruptakiOgrenci = seciliSinifGruplari[grupIndex].uyeler[uyeIndex];
+        gruptakiOgrenci.puan += puanDegeri;
+
+        const kaliciOgrenci = siniflar[seciliSinif].find(o => o.ad === gruptakiOgrenci.ad);
+        if (kaliciOgrenci) {
+            kaliciOgrenci.puan = gruptakiOgrenci.puan;
+        }
     });
 
     veriyiKaydet();
     grupTablolariniGuncelle(); 
 }
-
-
-// --- VERİ YÖNETİM İŞLEVLERİ (Ekleme/Düzenleme/Silme) ---
 
 function sinifSelectleriniDoldur() {
     const sinifListesi = Object.keys(siniflar).sort();
@@ -229,7 +250,8 @@ function sinifSelectleriniDoldur() {
         document.getElementById('sinifSecimi'),
         document.getElementById('hedefSinifSecimi'),
         document.getElementById('duzenlenecekSinifSecim'),
-        document.getElementById('silinecekSinifSecim')
+        document.getElementById('silinecekSinifSecim'),
+        document.getElementById('ogrenciSinifSecimi') // Yeni öğrenci select
     ];
     
     selects.forEach(select => {
@@ -257,6 +279,12 @@ function yeniOgrenciEkle() {
         alert("Lütfen geçerli bir öğrenci adı girin ve bir sınıf seçin.");
         return;
     }
+    
+    // Öğrenci zaten varsa ekleme
+    if (siniflar[hedefSinif].some(o => o.ad === ad)) {
+        alert(`Hata: ${ad} öğrencisi zaten ${hedefSinif} sınıfında mevcut.`);
+        return;
+    }
 
     const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
     siniflar[hedefSinif].push(yeniOgrenci);
@@ -270,7 +298,7 @@ function yeniOgrenciEkle() {
 }
 
 function ogrenciListesiGuncelle() {
-    const sinifAdi = document.getElementById('duzenlenecekSinifSecim').value;
+    const sinifAdi = document.getElementById('duzenlenecekSinifSecim') ? document.getElementById('duzenlenecekSinifSecim').value : null;
     const ogrenciSelect = document.getElementById('duzenlenecekOgrenci');
     if (!ogrenciSelect) return;
     
@@ -317,13 +345,96 @@ function sinifiSil() {
     if (confirm(`${silinecekSinif} sınıfını ve tüm öğrencilerini kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz.`)) {
         
         delete siniflar[silinecekSinif];
+        mevcutGruplar = mevcutGruplar.filter(g => g.sinif !== silinecekSinif); // Silinen sınıfa ait grupları da sil
         veriyiKaydet();
 
-        // Silinen sınıfın arayüzden temizlenmesi için tumVerileriGuncelle çağrılır.
         tumVerileriGuncelle(); 
         
         alert(`${silinecekSinif} sınıfı başarıyla silindi.`);
     }
+}
+
+
+// --- ÖĞRENCİ SAYFASI İŞLEVLERİ ---
+
+function ogrenciSiralamaGoster() {
+    const siralamaDiv = document.getElementById('siralama-listesi');
+    if (!siralamaDiv) return;
+    siralamaDiv.innerHTML = '';
+    
+    if (!seciliSinif || !siniflar[seciliSinif]) {
+        siralamaDiv.innerHTML = "<p>Lütfen bir sınıf seçin.</p>";
+        return;
+    }
+
+    // Puanlara göre büyükten küçüğe sırala
+    const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => b.puan - a.puan);
+
+    let html = `
+        <h3>${seciliSinif} Sınıfı Puan Sıralaması</h3>
+        <table class="siralama-tablosu">
+            <thead>
+                <tr>
+                    <th>Sıra</th>
+                    <th>Öğrenci Adı</th>
+                    <th>Puan</th>
+                </tr>
+            </thead>
+            <tbody>
+    `;
+
+    siraliOgrenciler.forEach((ogrenci, index) => {
+        html += `
+            <tr class="${ogrenci.devamsiz ? 'devamsiz-ogrenci' : ''} ${index === 0 ? 'birinci' : ''}">
+                <td>${index + 1}</td>
+                <td>${ogrenci.ad} ${ogrenci.devamsiz ? '(<span class="devamsiz-text">Devamsız</span>)' : ''}</td>
+                <td>${ogrenci.puan}</td>
+            </tr>
+        `;
+    });
+
+    html += `</tbody></table>`;
+    siralamaDiv.innerHTML = html;
+}
+
+function ogrenciGrupGoster() {
+    const grupDiv = document.getElementById('grup-gosterim-alani');
+    if (!grupDiv) return;
+    grupDiv.innerHTML = '';
+
+    if (!seciliSinif || !siniflar[seciliSinif]) {
+        grupDiv.innerHTML = "<p>Lütfen bir sınıf seçin.</p>";
+        return;
+    }
+
+    // Seçili sınıfa ait öğrencileri içeren grupları filtrele
+    const sinifaOzelGruplar = mevcutGruplar.filter(g => g.sinif === seciliSinif);
+
+    if (sinifaOzelGruplar.length === 0) {
+        grupDiv.innerHTML = "<p>Bu sınıfa ait henüz grup oluşturulmadı.</p>";
+        return;
+    }
+
+
+    let html = `<h3>${seciliSinif} Sınıfı Grupları</h3><div class="gruplar-container-ogrenci">`;
+
+    sinifaOzelGruplar.forEach((grup) => {
+        html += `
+            <div class="grup-karti-ogrenci">
+                <h4>${grup.ad}</h4>
+                <ul>
+                    ${grup.uyeler.map(uye => {
+                        const ogrenciTamData = siniflar[seciliSinif].find(o => o.ad === uye.ad);
+                        const isDevamsiz = ogrenciTamData ? ogrenciTamData.devamsiz : false;
+                        return `<li class="${isDevamsiz ? 'devamsiz-ogrenci' : ''}">${uye.ad} ${isDevamsiz ? '(Devamsız)' : ''}</li>`;
+                    }).join('')}
+                </ul>
+            </div>
+        `;
+    });
+
+    html += `</div>`;
+    grupDiv.innerHTML = html;
 }
 
 
@@ -336,21 +447,33 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     // 2. Select Değişim Olayları
+    
+    // ADMIN Panelindeki Sınıf Seçimi
     const sinifSecimElementi = document.getElementById('sinifSecimi');
-    if (sinifSecimElementi) {
+    if (sinifSecimElementi) { 
         sinifSecimElementi.onchange = (e) => {
             seciliSinif = e.target.value;
-            mevcutGruplar = []; 
             grupTablolariniGuncelle();
         };
     }
     
+    // ÖĞRENCİ Sayfasındaki Sınıf Seçimi
+    const ogrenciSinifSecimiElementi = document.getElementById('ogrenciSinifSecimi');
+    if (ogrenciSinifSecimiElementi) { 
+        ogrenciSinifSecimiElementi.onchange = (e) => {
+            seciliSinif = e.target.value;
+            ogrenciSiralamaGoster();
+            ogrenciGrupGoster();
+        };
+    }
+    
+    // Yönetim Alanı (duzenlenecekSinifSecim) için değişim olayını ayarla (Sadece Admin'de var)
     const duzenlenecekSinifSecimElementi = document.getElementById('duzenlenecekSinifSecim');
     if (duzenlenecekSinifSecimElementi) {
         duzenlenecekSinifSecimElementi.onchange = ogrenciListesiGuncelle;
     }
     
-    // 3. Puan Butonlarını Oluştur
+    // Puan Butonlarını Oluştur (Sadece Admin'de var)
     const puanButonlariContainer = document.getElementById('puan-butonlari');
     if (puanButonlariContainer) {
         PUAN_BUTONLARI.forEach(btn => {
