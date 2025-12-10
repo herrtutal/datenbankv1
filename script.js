@@ -1,15 +1,7 @@
 // --- SABİT TANIMLAMALAR ---
 
-const BASE_SINIFLAR = {
-    "10-A": [ 
-        { ad: "Ahmet Yılmaz", devamsiz: false, puan: 50 },
-        { ad: "Ayşe Kaya", devamsiz: false, puan: 35 },
-        { ad: "Burak Demir", devamsiz: false, puan: 40 }
-    ],
-    "11-B": [],
-    "5A": [], "5B": [], "5C": [], "5D": [], "5E": [], "5F": [],
-    "6A": [], "6B": [], "6E": [], "6F": [],
-};
+// BASE_SINIFLAR SABİTİ KALDIRILMIŞTIR. Veri artık JSON dosyasından yüklenecek.
+const INITIAL_DATA_FILE = 'initial_data.json'; 
 
 const PUAN_BUTONLARI = [
     { deger: 5, etiket: "Hızlı Cevap (+5)" },
@@ -18,7 +10,7 @@ const PUAN_BUTONLARI = [
     { deger: -5, etiket: "Uyar ( -5)" }
 ];
 
-let siniflar = {}; // Yüklenen veya varsayılan sınıf verileri burada tutulur
+let siniflar = {}; 
 let mevcutGruplar = []; 
 let seciliSinif = "10-A"; 
 
@@ -44,12 +36,9 @@ function veriyiYukle() {
             const parsedData = JSON.parse(kayitliVeri);
             
             if (typeof parsedData === 'object' && parsedData !== null && parsedData.siniflar) {
-                // *** KRİTİK DÜZELTME BAŞLANGICI ***
-                // siniflar nesnesini tamamen kayıtlı veriyle DEĞİŞTİRİYORUZ. 
-                // Bu, silinen sınıfların bellekten kaldırılmasını sağlar.
+                // Sınıfları ve grupları tamamen kayıtlı veriyle değiştir
                 siniflar = parsedData.siniflar; 
                 mevcutGruplar = parsedData.gruplar || []; 
-                // *** KRİTİK DÜZELTME SONU ***
                 return true;
             }
         } catch (e) {
@@ -60,8 +49,39 @@ function veriyiYukle() {
     return false;
 }
 
+// --- JSON DOSYASINDAN İLK VERİ YÜKLEME İŞLEVİ ---
 
-// --- GENEL GÜNCELLEME İŞLEVİ ---
+async function ilkVeriyiYukle() {
+    // 1. LocalStorage'da güncel veri varsa onu kullan
+    if (veriyiYukle()) {
+        return; 
+    }
+
+    // 2. LocalStorage boşsa, JSON dosyasından yükle
+    try {
+        const response = await fetch(INITIAL_DATA_FILE);
+        if (!response.ok) {
+            throw new Error(`JSON dosyası yüklenemedi: ${response.statusText}`);
+        }
+        const initialData = await response.json();
+        
+        // Global değişkenlere ata
+        siniflar = initialData.siniflar || {};
+        mevcutGruplar = initialData.gruplar || [];
+
+        // Yeni veriyi LocalStorage'a kaydet (uygulamanın bir sonraki açılışı için)
+        veriyiKaydet(); 
+        
+    } catch (e) {
+        console.error("JSON dosyasından ilk veri yüklenirken hata oluştu. Uygulama boş başlatılıyor.", e);
+        // Hata durumunda boş objelerle başlat
+        siniflar = {}; 
+        mevcutGruplar = [];
+    }
+}
+
+
+// --- GENEL GÜNCELLEME İŞLEVİ (Tüm Select Menülerini Senkronize Eder) ---
 
 function tumVerileriGuncelle() {
     // 1. Sınıf Select Menülerini Doldur
@@ -69,7 +89,7 @@ function tumVerileriGuncelle() {
 
     const kalanSiniflar = Object.keys(siniflar);
 
-    // 2. Aktif sınıfı güvenli bir şekilde belirle (Silindiyse, ilk sınıfı seç)
+    // 2. Aktif sınıfı güvenli bir şekilde belirle 
     let yeniSeciliSinif = null;
     if (seciliSinif && kalanSiniflar.includes(seciliSinif)) {
         yeniSeciliSinif = seciliSinif;
@@ -111,7 +131,6 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
-    // Rastgele karıştırma
     for (let i = aktifOgrenciler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
         [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
@@ -128,7 +147,6 @@ function gruplariOlustur() {
         yeniGruplar[grupIndex].uyeler.push(ogrenci);
     });
 
-    // Sadece bu sınıfa ait grupları güncelle ve yeni grupları ekle
     mevcutGruplar = mevcutGruplar.filter(g => g.sinif !== seciliSinif);
     mevcutGruplar.push(...yeniGruplar);
     
@@ -226,7 +244,6 @@ function puanEklemeButonu(puanDegeri) {
     secilenler.forEach(checkbox => {
         const [grupIndex, uyeIndex] = checkbox.value.split('-').map(Number);
         
-        // Puanı hem geçici grupta hem de kalıcı siniflar objesinde güncelle
         const gruptakiOgrenci = seciliSinifGruplari[grupIndex].uyeler[uyeIndex];
         gruptakiOgrenci.puan += puanDegeri;
 
@@ -434,17 +451,13 @@ function ogrenciGrupGoster() {
 
 // --- BAŞLANGIÇ VE YÜKLEME ---
 
-document.addEventListener('DOMContentLoaded', () => {
-    // 1. VERİ YÜKLEME
-    if (!veriyiYukle()) {
-        // Eğer yüklenemezse (ilk kez açılıyorsa veya bozuksa), BASE_SINIFLAR'ı kullan.
-        // Deep copy yaparak BASE_SINIFLAR'ın değiştirilmesini engelliyoruz.
-        siniflar = JSON.parse(JSON.stringify(BASE_SINIFLAR));
-    }
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    // 1. JSON veya LocalStorage'dan verileri asenkron olarak yükle
+    await ilkVeriyiYukle();
     
     // 2. Select Değişim Olayları
     
-    // ADMIN Panelindeki Sınıf Seçimi
     const sinifSecimElementi = document.getElementById('sinifSecimi');
     if (sinifSecimElementi) { 
         sinifSecimElementi.onchange = (e) => {
@@ -453,7 +466,6 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    // ÖĞRENCİ Sayfasındaki Sınıf Seçimi
     const ogrenciSinifSecimiElementi = document.getElementById('ogrenciSinifSecimi');
     if (ogrenciSinifSecimiElementi) { 
         ogrenciSinifSecimiElementi.onchange = (e) => {
@@ -463,13 +475,12 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    // Yönetim Alanı (duzenlenecekSinifSecim) için değişim olayını ayarla (Sadece Admin'de var)
     const duzenlenecekSinifSecimElementi = document.getElementById('duzenlenecekSinifSecim');
     if (duzenlenecekSinifSecimElementi) {
         duzenlenecekSinifSecimElementi.onchange = ogrenciListesiGuncelle;
     }
     
-    // Puan Butonlarını Oluştur (Sadece Admin'de var)
+    // 3. Puan Butonlarını Oluştur (Sadece Admin'de var)
     const puanButonlariContainer = document.getElementById('puan-butonlari');
     if (puanButonlariContainer) {
         PUAN_BUTONLARI.forEach(btn => {
