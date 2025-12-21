@@ -18,6 +18,26 @@ let siniflar = {};
 let mevcutGruplar = []; 
 let seciliSinif = "10-A";
 
+// Sınıf isimlerini güncelleme fonksiyonu (rakam-harf arasına - ekler)
+function sinifIsimleriniGuncelle() {
+    const yeniSiniflar = {};
+    Object.keys(siniflar).forEach(sinifAdi => {
+        const yeniSinifAdi = sinifAdi.replace(/(\d+)([A-Z])/g, '$1-$2');
+        yeniSiniflar[yeniSinifAdi] = siniflar[sinifAdi];
+    });
+    siniflar = yeniSiniflar;
+    
+    // Gruplardaki sınıf isimlerini de güncelle
+    mevcutGruplar.forEach(grup => {
+        if (grup.sinif) {
+            grup.sinif = grup.sinif.replace(/(\d+)([A-Z])/g, '$1-$2');
+        }
+    });
+    
+    // seciliSinif'i de güncelle
+    seciliSinif = seciliSinif.replace(/(\d+)([A-Z])/g, '$1-$2');
+}
+
 // --- SIRALAMA FONKSİYONU (Sınıf, Numara, Ad Soyad, Cinsiyet) ---
 
 function ogrenciSiralamaFonksiyonu(a, b, sinifA = null, sinifB = null) {
@@ -57,68 +77,29 @@ const FIRESTORE_DOCUMENT_ID = 'anaVeri';
 // Firestore'dan veri kaydetme
 async function veriyiKaydet() {
     try {
-        const kayitObjesi = {
-            siniflar: siniflar,
-            gruplar: mevcutGruplar,
-            guncellemeTarihi: new Date().toISOString()
-        };
-
-        // LocalStorage'a her zaman kaydet (yedek olarak)
-        localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
-        console.log("Veri LocalStorage'a kaydedildi.");
-
         if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi. Sadece LocalStorage'a kaydedildi.");
+            console.warn("Firebase henüz yüklenmedi. Veri kaydedilemedi.");
             return;
         }
 
-        // Firestore'a kaydet (zaman damgası ile)
-        kayitObjesi.guncellemeTarihi = firebase.firestore.FieldValue.serverTimestamp();
+        const kayitObjesi = {
+            siniflar: siniflar,
+            gruplar: mevcutGruplar,
+            guncellemeTarihi: firebase.firestore.FieldValue.serverTimestamp()
+        };
+
         await db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID).set(kayitObjesi);
         console.log("Veri Firestore'a başarıyla kaydedildi.");
     } catch (e) {
-        console.error("Veri kaydedilirken bir hata oluştu:", e);
-        // Hata durumunda bile LocalStorage'a kaydetmeyi dene
-        try {
-            const kayitObjesi = {
-                siniflar: siniflar,
-                gruplar: mevcutGruplar,
-                guncellemeTarihi: new Date().toISOString()
-            };
-            localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
-            console.log("Hata sonrası veri LocalStorage'a kaydedildi.");
-        } catch (localError) {
-            console.error("LocalStorage'a kaydetme de başarısız:", localError);
-        }
+        console.error("Firestore'a veri kaydedilirken bir hata oluştu:", e);
     }
 }
 
 // Firestore'dan veri yükleme
 async function veriyiYukle() {
     try {
-        // Önce LocalStorage'dan dene
-        const localData = localStorage.getItem('sinifVerileri');
-        if (localData) {
-            const data = JSON.parse(localData);
-            if (data && data.siniflar) {
-                siniflar = data.siniflar || {};
-                mevcutGruplar = data.gruplar || [];
-                
-                // Tüm sınıflardaki öğrencileri sırala
-                Object.keys(siniflar).forEach(sinifAdi => {
-                    if (Array.isArray(siniflar[sinifAdi])) {
-                        siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
-                    }
-                });
-                
-                console.log("Veri LocalStorage'dan yüklendi ve sıralandı.");
-                return true;
-            }
-        }
-
-        // LocalStorage'da yoksa Firestore'dan dene
         if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi ve LocalStorage'da veri yok.");
+            console.warn("Firebase henüz yüklenmedi.");
             return false;
         }
 
@@ -130,6 +111,9 @@ async function veriyiYukle() {
             if (data && data.siniflar) {
                 siniflar = data.siniflar || {};
                 mevcutGruplar = data.gruplar || [];
+                
+                // Sınıf isimlerini güncelle
+                sinifIsimleriniGuncelle();
                 
                 // Tüm sınıflardaki öğrencileri sırala
                 Object.keys(siniflar).forEach(sinifAdi => {
@@ -144,7 +128,7 @@ async function veriyiYukle() {
         }
         return false;
     } catch (e) {
-        console.error("Veri yüklenirken hata oluştu:", e);
+        console.error("Firestore'dan veri yüklenirken hata oluştu:", e);
         return false;
     }
 }
@@ -165,24 +149,15 @@ function veriDinleyicisiniKur() {
                         siniflar = data.siniflar || {};
                         mevcutGruplar = data.gruplar || [];
                         
+                        // Sınıf isimlerini güncelle
+                        sinifIsimleriniGuncelle();
+                        
                         // Tüm sınıflardaki öğrencileri sırala
                         Object.keys(siniflar).forEach(sinifAdi => {
                             if (Array.isArray(siniflar[sinifAdi])) {
                                 siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
                             }
                         });
-                        
-                        // LocalStorage'a da kaydet (yedek olarak)
-                        try {
-                            const localKayit = {
-                                siniflar: siniflar,
-                                gruplar: mevcutGruplar,
-                                guncellemeTarihi: new Date().toISOString()
-                            };
-                            localStorage.setItem('sinifVerileri', JSON.stringify(localKayit));
-                        } catch (e) {
-                            console.error("LocalStorage'a kaydetme hatası:", e);
-                        }
                         
                         console.log("Veri gerçek zamanlı olarak güncellendi ve sıralandı.");
                         tumVerileriGuncelle();
@@ -218,6 +193,9 @@ async function ilkVeriyiYukle() {
         // Global değişkenlere ata
         siniflar = initialData.siniflar || {};
         mevcutGruplar = initialData.gruplar || [];
+        
+        // Sınıf isimlerini güncelle (eski verilerde olabilir)
+        sinifIsimleriniGuncelle();
         
         // Tüm sınıflardaki öğrencileri sırala
         Object.keys(siniflar).forEach(sinifAdi => {
@@ -605,6 +583,10 @@ function topluOgrenciEkle() {
             numara = parcalar[parcalar.length - 3];
             sinif = parcalar.slice(0, parcalar.length - 3).join('-');
         }
+        
+        // Sınıf ismini güncelle (rakam-harf arasına - ekle)
+        sinif = sinif.replace(/(\d+)([A-Z])/g, '$1-$2');
+        
         const cinsiyet = cinsiyetStr.toUpperCase() === 'E' || cinsiyetStr.toUpperCase() === 'ERKEK' ? 'e' : 
                         (cinsiyetStr.toUpperCase() === 'K' || cinsiyetStr.toUpperCase() === 'KIZ' ? 'k' : null);
         
@@ -827,6 +809,30 @@ function ogrenciBilgileriniGuncelle() {
         mesaj += `\n📚 Sınıf ${sinifAdi} → ${yeniSinif} olarak değiştirildi.`;
     }
     alert(mesaj);
+}
+
+function yeniSinifEkle() {
+    const yeniSinifAd = document.getElementById('yeniSinifAd').value.trim();
+    
+    if (!yeniSinifAd) {
+        alert("Lütfen sınıf adını girin.");
+        return;
+    }
+    
+    // Sınıf ismini güncelle (rakam-harf arasına - ekle)
+    const guncellenmisSinifAd = yeniSinifAd.replace(/(\d+)([A-Z])/g, '$1-$2');
+    
+    if (siniflar[guncellenmisSinifAd]) {
+        alert(`${guncellenmisSinifAd} sınıfı zaten mevcut.`);
+        return;
+    }
+    
+    siniflar[guncellenmisSinifAd] = [];
+    veriyiKaydet();
+    tumVerileriGuncelle();
+    
+    document.getElementById('yeniSinifAd').value = '';
+    alert(`✅ ${guncellenmisSinifAd} sınıfı başarıyla oluşturuldu.`);
 }
 
 function sinifiSil() {
