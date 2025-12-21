@@ -110,12 +110,12 @@
                 <p style="font-size: 0.9em; color: var(--text-light); margin-bottom: 15px;">
                     Her satıra bir öğrenci bilgisi girin. Format: <strong>Sınıf - Numara - Ad Soyad - Cinsiyet (E/K)</strong><br>
                     Örnek:<br>
-                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10-A - 123 - Ahmet Yılmaz - E</code><br>
-                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10-A - 456 - Ayşe Kaya - K</code>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10A - 123 - Ahmet Yılmaz - E</code><br>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10A - 456 - Ayşe Kaya - K</code>
                 </p>
                 <div class="form-group">
                     <label for="topluOgrenciListesi">Öğrenci Listesi:</label>
-                    <textarea id="topluOgrenciListesi" rows="15" placeholder="10-A - 123 - Ahmet Yılmaz - E&#10;10-A - 456 - Ayşe Kaya - K&#10;11-B - 789 - Mehmet Demir - E" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: monospace; font-size: 0.95em; resize: vertical;"></textarea>
+                    <textarea id="topluOgrenciListesi" rows="15" placeholder="10A - 123 - Ahmet Yılmaz - E&#10;10A - 456 - Ayşe Kaya - K&#10;11B - 789 - Mehmet Demir - E" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: monospace; font-size: 0.95em; resize: vertical;"></textarea>
                 </div>
                 <button onclick="topluOgrenciEkle()" class="refresh-btn">📥 Toplu Ekle</button>
                 <button onclick="ornekVeriYukle()" style="background: linear-gradient(135deg, var(--info-color), #2563eb);">📋 Örnek Veri Yükle</button>
@@ -161,7 +161,50 @@
             <button onclick="ogrenciBilgileriniGuncelle()">💾 Bilgileri Güncelle</button>
 
             <hr>
-            
+            <h3>Yeni Sınıf Ekle</h3>
+<p>Sisteme yeni bir sınıf ismi tanımlayın (Örn: 12C).</p>
+<div class="form-group">
+    <input type="text" id="yeniSinifAd" placeholder="Sınıf Adı (Örn: 9A)">
+    <button onclick="yeniSinifEkle()" class="add-btn">Sınıfı Oluştur</button>
+</div>
+
+<hr> ```
+
+
+
+---
+
+### 2. `script.js` Güncellemesi
+Aşağıdaki fonksiyonu `script.js` dosyanızın herhangi bir yerine (tercihen `sinifiSil()` fonksiyonunun yakınına) ekleyin.
+
+```javascript
+function yeniSinifEkle() {
+    const yeniSinifInput = document.getElementById('yeniSinifAd');
+    const yeniSinifAdi = yeniSinifInput.value.trim().toUpperCase(); // Büyük harfe çevirerek standart sağlar
+
+    if (!yeniSinifAdi) {
+        alert("Lütfen bir sınıf adı giriniz.");
+        return;
+    }
+
+    // Sınıf zaten var mı kontrol et
+    if (siniflar[yeniSinifAdi]) {
+        alert(`Hata: ${yeniSinifAdi} sınıfı zaten sistemde mevcut.`);
+        return;
+    }
+
+    // Sınıfı boş bir dizi olarak ekle
+    siniflar[yeniSinifAdi] = [];
+    
+    // Veriyi kaydet ve arayüzü güncelle
+    veriyiKaydet();
+    tumVerileriGuncelle();
+    
+    // Inputu temizle
+    yeniSinifInput.value = '';
+    
+    alert(`${yeniSinifAdi} sınıfı başarıyla oluşturuldu! Artık bu sınıfa öğrenci ekleyebilirsiniz.`);
+}
             <h3>Sınıfı Sil</h3>
             <p>Seçilen sınıfı ve tüm öğrencilerini sistemden kalıcı olarak siler.</p>
             <div class="form-group">
