@@ -8,10 +8,10 @@ const ADMIN_USERNAME = 'Herr Tutal';
 const ADMIN_PASSWORD = 'ht2553'; 
 
 const PUAN_BUTONLARI = [
-    { deger: 5, etiket: "⚡ Hızlı Cevap (+5)" },
-    { deger: 10, etiket: "🌟 Mükemmel Sunum (+10)" },
-    { deger: 20, etiket: "🏆 Proje Kazananı (+20)" },
-    { deger: -5, etiket: "⚠️ Uyarı (-5)" }
+    { deger: 1, etiket: "⚡ +1" },
+    { deger: 3, etiket: "🌟 +3)" },
+    { deger: 5, etiket: "🏆 +5)" },
+    { deger: -1, etiket: "⚠️ -1)" }
 ];
 
 let siniflar = {}; 
