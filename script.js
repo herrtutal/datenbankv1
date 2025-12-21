@@ -16,7 +16,37 @@ const PUAN_BUTONLARI = [
 
 let siniflar = {}; 
 let mevcutGruplar = []; 
-let seciliSinif = "10-A"; 
+let seciliSinif = "10-A";
+
+// --- SIRALAMA FONKSİYONU (Sınıf, Numara, Ad Soyad, Cinsiyet) ---
+
+function ogrenciSiralamaFonksiyonu(a, b, sinifA = null, sinifB = null) {
+    // 1. Önce sınıfa göre sırala (eğer sınıf bilgisi verilmişse)
+    if (sinifA && sinifB && sinifA !== sinifB) {
+        return sinifA.localeCompare(sinifB, 'tr');
+    }
+    
+    // 2. Numara'ya göre sırala (sayısal)
+    const numaraA = parseInt(a.numara) || 0;
+    const numaraB = parseInt(b.numara) || 0;
+    if (numaraA !== numaraB) {
+        return numaraA - numaraB;
+    }
+    
+    // 3. Ad Soyad'a göre sırala (alfabetik)
+    if (a.ad !== b.ad) {
+        return a.ad.localeCompare(b.ad, 'tr');
+    }
+    
+    // 4. Cinsiyet'e göre sırala (Erkek önce)
+    const cinsiyetA = a.cinsiyet || '';
+    const cinsiyetB = b.cinsiyet || '';
+    if (cinsiyetA !== cinsiyetB) {
+        return cinsiyetA === 'e' ? -1 : (cinsiyetB === 'e' ? 1 : 0);
+    }
+    
+    return 0;
+} 
 
 
 // --- KALICILIK YÖNETİMİ (FIREBASE FIRESTORE) ---
@@ -61,7 +91,15 @@ async function veriyiYukle() {
             if (data && data.siniflar) {
                 siniflar = data.siniflar || {};
                 mevcutGruplar = data.gruplar || [];
-                console.log("Veri Firestore'dan yüklendi.");
+                
+                // Tüm sınıflardaki öğrencileri sırala
+                Object.keys(siniflar).forEach(sinifAdi => {
+                    if (Array.isArray(siniflar[sinifAdi])) {
+                        siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+                    }
+                });
+                
+                console.log("Veri Firestore'dan yüklendi ve sıralandı.");
                 return true;
             }
         }
@@ -87,7 +125,15 @@ function veriDinleyicisiniKur() {
                     if (data && data.siniflar) {
                         siniflar = data.siniflar || {};
                         mevcutGruplar = data.gruplar || [];
-                        console.log("Veri gerçek zamanlı olarak güncellendi.");
+                        
+                        // Tüm sınıflardaki öğrencileri sırala
+                        Object.keys(siniflar).forEach(sinifAdi => {
+                            if (Array.isArray(siniflar[sinifAdi])) {
+                                siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+                            }
+                        });
+                        
+                        console.log("Veri gerçek zamanlı olarak güncellendi ve sıralandı.");
                         tumVerileriGuncelle();
                     }
                 }
@@ -121,6 +167,13 @@ async function ilkVeriyiYukle() {
         // Global değişkenlere ata
         siniflar = initialData.siniflar || {};
         mevcutGruplar = initialData.gruplar || [];
+        
+        // Tüm sınıflardaki öğrencileri sırala
+        Object.keys(siniflar).forEach(sinifAdi => {
+            if (Array.isArray(siniflar[sinifAdi])) {
+                siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+            }
+        });
 
         // Veriyi Firestore'a kaydet
         await veriyiKaydet();
@@ -231,6 +284,11 @@ function gruplariOlustur() {
         yeniGruplar[grupIndex].uyeler.push(ogrenci);
     });
 
+    // Grup üyelerini sırala (Numara, Ad Soyad, Cinsiyet)
+    yeniGruplar.forEach(grup => {
+        grup.uyeler.sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+    });
+    
     mevcutGruplar = mevcutGruplar.filter(g => g.sinif !== seciliSinif);
     mevcutGruplar.push(...yeniGruplar);
     
@@ -257,25 +315,37 @@ function grupTablolariniGuncelle() {
         grupDiv.className = 'grup-karti';
         grupDiv.innerHTML = `<h3>${grup.ad}</h3>`;
         
+        // Grup üyelerini sırala (Numara, Ad Soyad, Cinsiyet)
+        const siraliUyeler = [...grup.uyeler].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+        
         const tablo = document.createElement('table');
         tablo.innerHTML = `
             <thead>
                 <tr>
                     <th>✅ Seç</th>
-                    <th>👤 Öğrenci Adı</th>
+                    <th>🏫 Sınıf</th>
                     <th>🔢 Numara</th>
+                    <th>👤 Adı Soyadı</th>
+                    <th>⚥ Cinsiyet</th>
                     <th>⭐ Puan</th>
                 </tr>
             </thead>
             <tbody>
-                ${grup.uyeler.map((uye, uIndex) => `
+                ${siraliUyeler.map((uye, uIndex) => {
+                    const orjinalIndex = grup.uyeler.findIndex(u => u.ad === uye.ad && u.numara === uye.numara);
+                    const cinsiyetText = uye.cinsiyet === 'e' ? 'Erkek' : (uye.cinsiyet === 'k' ? 'Kız' : '-');
+                    const cinsiyetEmoji = uye.cinsiyet === 'e' ? '👨' : (uye.cinsiyet === 'k' ? '👩' : '❓');
+                    return `
                     <tr>
-                        <td><input type="checkbox" value="${gIndex}-${uIndex}"></td>
-                        <td>${uye.ad}</td>
+                        <td><input type="checkbox" value="${gIndex}-${orjinalIndex}"></td>
+                        <td>${grup.sinif}</td>
                         <td>${uye.numara || '-'}</td>
+                        <td>${uye.ad}</td>
+                        <td>${cinsiyetEmoji} ${cinsiyetText}</td>
                         <td><span class="puan-badge">${uye.puan}</span></td>
                     </tr>
-                `).join('')}
+                `;
+                }).join('')}
             </tbody>
         `;
         grupDiv.appendChild(tablo);
@@ -305,18 +375,25 @@ function devamsizlikListesiniGuncelle() {
 
      if (!seciliSinif || !siniflar[seciliSinif]) return;
 
+     // Öğrencileri sırala (Numara, Ad Soyad, Cinsiyet)
+     const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+
      const liste = document.createElement('ul');
-     liste.innerHTML = siniflar[seciliSinif].map(ogrenci => `
+     liste.innerHTML = siraliOgrenciler.map(ogrenci => {
+         const cinsiyetText = ogrenci.cinsiyet === 'e' ? 'Erkek' : (ogrenci.cinsiyet === 'k' ? 'Kız' : '-');
+         const cinsiyetEmoji = ogrenci.cinsiyet === 'e' ? '👨' : (ogrenci.cinsiyet === 'k' ? '👩' : '❓');
+         return `
          <li>
              <input type="checkbox" 
-                    onchange="devamsizligiDegistir('${ogrenci.ad}')"
+                    onchange="devamsizligiDegistir('${ogrenci.ad.replace(/'/g, "\\'")}')"
                     ${ogrenci.devamsiz ? 'checked' : ''}>
-             ${ogrenci.ad} 
+             <strong>${ogrenci.numara || '-'}</strong> - ${ogrenci.ad} ${cinsiyetEmoji} ${cinsiyetText}
              <span class="${ogrenci.devamsiz ? 'devamsiz' : 'aktif'}">
                  ${ogrenci.devamsiz ? '(Devamsız)' : '(Aktif)'}
              </span>
          </li>
-     `).join('');
+     `;
+     }).join('');
      devamsizDiv.appendChild(liste);
 }
 
@@ -417,6 +494,9 @@ function yeniOgrenciEkle() {
     };
     siniflar[hedefSinif].push(yeniOgrenci);
     
+    // Sınıfı yeniden sırala
+    siniflar[hedefSinif].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+    
     veriyiKaydet(); 
     
     alert(`✅ ${ad} (${numara}), ${hedefSinif} sınıfına başarıyla eklendi!`);
@@ -481,6 +561,12 @@ function topluOgrenciEkle() {
     });
     
     if (basarili > 0) {
+        // Eklenen sınıfları sırala
+        Object.keys(siniflar).forEach(sinifAdi => {
+            if (Array.isArray(siniflar[sinifAdi])) {
+                siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+            }
+        });
         veriyiKaydet();
         tumVerileriGuncelle();
     }
@@ -517,11 +603,15 @@ function ogrenciListesiGuncelle() {
     ogrenciSelect.innerHTML = '<option value="">Öğrenci seçin...</option>'; 
 
     if (siniflar[sinifAdi]) {
-        siniflar[sinifAdi].forEach(ogrenci => {
+        // Öğrencileri sırala (Numara, Ad Soyad, Cinsiyet)
+        const siraliOgrenciler = [...siniflar[sinifAdi]].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+        
+        siraliOgrenciler.forEach(ogrenci => {
             const option = document.createElement('option');
             option.value = ogrenci.ad; 
-            const numaraGoster = ogrenci.numara ? ` (${ogrenci.numara})` : '';
-            option.textContent = ogrenci.ad + numaraGoster;
+            const numaraGoster = ogrenci.numara ? ` [${ogrenci.numara}]` : '';
+            const cinsiyetGoster = ogrenci.cinsiyet === 'e' ? '👨' : (ogrenci.cinsiyet === 'k' ? '👩' : '');
+            option.textContent = numaraGoster + ' ' + ogrenci.ad + ' ' + cinsiyetGoster;
             ogrenciSelect.appendChild(option);
         });
     }
@@ -612,6 +702,14 @@ function ogrenciBilgileriniGuncelle() {
         });
     }
     
+    // Güncellenen sınıfları sırala
+    if (siniflar[sinifAdi]) {
+        siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+    }
+    if (yeniSinif && yeniSinif !== sinifAdi && siniflar[yeniSinif]) {
+        siniflar[yeniSinif].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+    }
+    
     veriyiKaydet();
     
     // Form alanlarını temizle
@@ -660,25 +758,8 @@ function ogrenciSiralamaGoster() {
         return;
     }
 
-    // Sıralama: Sınıf, Numara, Ad Soyad, Cinsiyet sırasına göre
-    // (Sınıf zaten seçili olduğu için sınıf içinde numara, ad soyad, cinsiyet sırasına göre sırala)
-    const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => {
-        // Önce numara'ya göre sırala (sayısal)
-        const numaraA = parseInt(a.numara) || 0;
-        const numaraB = parseInt(b.numara) || 0;
-        if (numaraA !== numaraB) {
-            return numaraA - numaraB;
-        }
-        // Numara aynıysa ad soyada göre sırala
-        if (a.ad !== b.ad) {
-            return a.ad.localeCompare(b.ad, 'tr');
-        }
-        // Ad soyad da aynıysa cinsiyete göre sırala (Erkek önce)
-        if (a.cinsiyet !== b.cinsiyet) {
-            return (a.cinsiyet === 'e' ? -1 : 1);
-        }
-        return 0;
-    });
+    // Sıralama: Numara, Ad Soyad, Cinsiyet sırasına göre (Sınıf zaten seçili)
+    const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
 
     let html = `
         <h3>📋 ${seciliSinif} Sınıfı Öğrenci Listesi 📋</h3>
@@ -732,14 +813,19 @@ function ogrenciGrupGoster() {
     let html = `<h3>👥 ${seciliSinif} Sınıfı Grupları 👥</h3><div class="gruplar-container-ogrenci">`;
 
     sinifaOzelGruplar.forEach((grup) => {
+        // Grup üyelerini sırala (Numara, Ad Soyad, Cinsiyet)
+        const siraliUyeler = [...grup.uyeler].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+        
         html += `
             <div class="grup-karti-ogrenci">
                 <h4>${grup.ad}</h4>
                 <ul>
-                    ${grup.uyeler.map(uye => {
+                    ${siraliUyeler.map(uye => {
                         const ogrenciTamData = siniflar[seciliSinif].find(o => o.ad === uye.ad);
                         const isDevamsiz = ogrenciTamData ? ogrenciTamData.devamsiz : false;
-                        return `<li class="${isDevamsiz ? 'devamsiz-ogrenci' : ''}">${uye.ad} ${isDevamsiz ? '(Devamsız)' : ''}</li>`;
+                        const numaraGoster = uye.numara ? `[${uye.numara}] ` : '';
+                        const cinsiyetEmoji = uye.cinsiyet === 'e' ? '👨' : (uye.cinsiyet === 'k' ? '👩' : '');
+                        return `<li class="${isDevamsiz ? 'devamsiz-ogrenci' : ''}">${numaraGoster}${uye.ad} ${cinsiyetEmoji} ${isDevamsiz ? '(Devamsız)' : ''}</li>`;
                     }).join('')}
                 </ul>
             </div>
