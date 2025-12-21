@@ -108,14 +108,14 @@
             <div id="toplu-tab" class="tab-content">
                 <p><strong>Toplu öğrenci ekleme formatı:</strong></p>
                 <p style="font-size: 0.9em; color: var(--text-light); margin-bottom: 15px;">
-                    Her satıra bir öğrenci bilgisi girin. Format: <strong>Ad Soyad | Numara | Cinsiyet (E/K) | Sınıf</strong><br>
+                    Her satıra bir öğrenci bilgisi girin. Format: <strong>Sınıf - Numara - Ad Soyad - Cinsiyet (E/K)</strong><br>
                     Örnek:<br>
-                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">Ahmet Yılmaz | 123 | E | 10-A</code><br>
-                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">Ayşe Kaya | 456 | K | 10-A</code>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10-A - 123 - Ahmet Yılmaz - E</code><br>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">10-A - 456 - Ayşe Kaya - K</code>
                 </p>
                 <div class="form-group">
                     <label for="topluOgrenciListesi">Öğrenci Listesi:</label>
-                    <textarea id="topluOgrenciListesi" rows="15" placeholder="Ahmet Yılmaz | 123 | E | 10-A&#10;Ayşe Kaya | 456 | K | 10-A&#10;Mehmet Demir | 789 | E | 11-B" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: monospace; font-size: 0.95em; resize: vertical;"></textarea>
+                    <textarea id="topluOgrenciListesi" rows="15" placeholder="10-A - 123 - Ahmet Yılmaz - E&#10;10-A - 456 - Ayşe Kaya - K&#10;11-B - 789 - Mehmet Demir - E" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: monospace; font-size: 0.95em; resize: vertical;"></textarea>
                 </div>
                 <button onclick="topluOgrenciEkle()" class="refresh-btn">📥 Toplu Ekle</button>
                 <button onclick="ornekVeriYukle()" style="background: linear-gradient(135deg, var(--info-color), #2563eb);">📋 Örnek Veri Yükle</button>

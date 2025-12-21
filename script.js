@@ -525,15 +525,15 @@ function topluOgrenciEkle() {
     
     // Önce tüm öğrencileri parse et ve doğrula
     satirlar.forEach((satir, index) => {
-        const parcalar = satir.split('|').map(p => p.trim());
+        const parcalar = satir.split('-').map(p => p.trim());
         
         if (parcalar.length !== 4) {
             basarisiz++;
-            hatalar.push(`Satır ${index + 1}: Format hatalı (4 alan olmalı)`);
+            hatalar.push(`Satır ${index + 1}: Format hatalı (4 alan olmalı: Sınıf - Numara - Ad Soyad - Cinsiyet)`);
             return;
         }
         
-        const [ad, numara, cinsiyetStr, sinif] = parcalar;
+        const [sinif, numara, ad, cinsiyetStr] = parcalar;
         const cinsiyet = cinsiyetStr.toUpperCase() === 'E' || cinsiyetStr.toUpperCase() === 'ERKEK' ? 'e' : 
                         (cinsiyetStr.toUpperCase() === 'K' || cinsiyetStr.toUpperCase() === 'KIZ' ? 'k' : null);
         
@@ -611,12 +611,12 @@ function topluOgrenciEkle() {
 
 // Örnek Veri Yükleme
 function ornekVeriYukle() {
-    const ornekVeri = `Ahmet Yılmaz | 101 | E | 10-A
-Ayşe Kaya | 102 | K | 10-A
-Mehmet Demir | 103 | E | 10-A
-Fatma Şahin | 104 | K | 10-A
-Ali Veli | 105 | E | 11-B
-Zeynep Öz | 106 | K | 11-B`;
+    const ornekVeri = `10-A - 101 - Ahmet Yılmaz - E
+10-A - 102 - Ayşe Kaya - K
+10-A - 103 - Mehmet Demir - E
+10-A - 104 - Fatma Şahin - K
+11-B - 105 - Ali Veli - E
+11-B - 106 - Zeynep Öz - K`;
     
     document.getElementById('topluOgrenciListesi').value = ornekVeri;
 }
