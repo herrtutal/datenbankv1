@@ -170,41 +170,6 @@
 
 <hr> ```
 
-
-
----
-
-### 2. `script.js` Güncellemesi
-Aşağıdaki fonksiyonu `script.js` dosyanızın herhangi bir yerine (tercihen `sinifiSil()` fonksiyonunun yakınına) ekleyin.
-
-```javascript
-function yeniSinifEkle() {
-    const yeniSinifInput = document.getElementById('yeniSinifAd');
-    const yeniSinifAdi = yeniSinifInput.value.trim().toUpperCase(); // Büyük harfe çevirerek standart sağlar
-
-    if (!yeniSinifAdi) {
-        alert("Lütfen bir sınıf adı giriniz.");
-        return;
-    }
-
-    // Sınıf zaten var mı kontrol et
-    if (siniflar[yeniSinifAdi]) {
-        alert(`Hata: ${yeniSinifAdi} sınıfı zaten sistemde mevcut.`);
-        return;
-    }
-
-    // Sınıfı boş bir dizi olarak ekle
-    siniflar[yeniSinifAdi] = [];
-    
-    // Veriyi kaydet ve arayüzü güncelle
-    veriyiKaydet();
-    tumVerileriGuncelle();
-    
-    // Inputu temizle
-    yeniSinifInput.value = '';
-    
-    alert(`${yeniSinifAdi} sınıfı başarıyla oluşturuldu! Artık bu sınıfa öğrenci ekleyebilirsiniz.`);
-}
             <h3>Sınıfı Sil</h3>
             <p>Seçilen sınıfı ve tüm öğrencilerini sistemden kalıcı olarak siler.</p>
             <div class="form-group">
