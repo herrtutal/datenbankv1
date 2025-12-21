@@ -2,12 +2,13 @@
 // NOT: Firebase Console'dan (https://console.firebase.google.com) aldığınız config değerlerini buraya girin
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY",
-    authDomain: "YOUR_AUTH_DOMAIN",
-    projectId: "YOUR_PROJECT_ID",
-    storageBucket: "YOUR_STORAGE_BUCKET",
-    messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-    appId: "YOUR_APP_ID"
+    apiKey: "AIzaSyD4pPgfXgjlKNtthWBStkd-34Caz4IM43A",
+    authDomain: "datenbank-6c1e4.firebaseapp.com",
+    projectId: "datenbank-6c1e4",
+    storageBucket: "datenbank-6c1e4.firebasestorage.app",
+    messagingSenderId: "489369376326",
+    appId: "1:489369376326:web:d50ba05feea5cc52655c47"
+    measurementId: "G-NR7VBF9JJ3"
 };
 
 // Firebase'i başlat
