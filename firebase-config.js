@@ -8,7 +8,6 @@ const firebaseConfig = {
     storageBucket: "datenbank-6c1e4.firebasestorage.app",
     messagingSenderId: "489369376326",
     appId: "1:489369376326:web:d50ba05feea5cc52655c47"
-    measurementId: "G-NR7VBF9JJ3"
 };
 
 // Firebase'i başlat
