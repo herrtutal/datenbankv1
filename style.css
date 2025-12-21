@@ -1,66 +1,645 @@
-/* ... [Mevcut style.css içeriği] ... */
+/* ============================================
+   ORTAOKUL ÖĞRENCİLERİ İÇİN EĞLENCELİ TASARIM
+   ============================================ */
 
-/* --- Yeni Giriş Sayfası (Splash Screen) Stilleri --- */
+/* Genel Ayarlar */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
 
+:root {
+    --primary-color: #6366f1;
+    --secondary-color: #ec4899;
+    --accent-color: #f59e0b;
+    --success-color: #10b981;
+    --danger-color: #ef4444;
+    --warning-color: #f59e0b;
+    --info-color: #3b82f6;
+    
+    --bg-gradient-start: #667eea;
+    --bg-gradient-end: #764ba2;
+    --bg-light: #f8fafc;
+    --card-bg: #ffffff;
+    
+    --text-dark: #1e293b;
+    --text-light: #64748b;
+    
+    --shadow-sm: 0 2px 4px rgba(0,0,0,0.1);
+    --shadow-md: 0 4px 6px rgba(0,0,0,0.1);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.15);
+    --shadow-xl: 0 20px 40px rgba(0,0,0,0.2);
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+    color: var(--text-dark);
+    line-height: 1.6;
+}
+
+/* Header Stilleri */
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 25px 20px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    letter-spacing: -0.5px;
+}
+
+/* Navigation */
+nav {
+    background: rgba(255, 255, 255, 0.95);
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: var(--shadow-sm);
+    backdrop-filter: blur(10px);
+}
+
+nav a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    padding: 10px 20px;
+    margin: 0 10px;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+    display: inline-block;
+}
+
+nav a:hover {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+/* Main Container */
+main {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+/* Section Stilleri */
+section {
+    background: var(--card-bg);
+    border-radius: 20px;
+    padding: 30px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow-lg);
+    animation: slideIn 0.5s ease-out;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+section h2 {
+    color: var(--primary-color);
+    font-size: 1.8rem;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 3px solid;
+    border-image: linear-gradient(90deg, var(--primary-color), var(--secondary-color)) 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+section h3 {
+    color: var(--secondary-color);
+    font-size: 1.4rem;
+    margin: 20px 0 15px 0;
+}
+
+/* Form Grupları */
+.form-group {
+    margin-bottom: 20px;
+}
+
+label {
+    display: block;
+    font-weight: 600;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    font-size: 1rem;
+}
+
+input[type="text"],
+input[type="number"],
+select {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    background: white;
+    color: var(--text-dark);
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+    transform: translateY(-2px);
+}
+
+/* Butonlar */
+button {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+    border: none;
+    padding: 14px 28px;
+    font-size: 1rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+    margin: 5px;
+}
+
+button:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+button:active {
+    transform: translateY(-1px);
+}
+
+.refresh-btn {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.refresh-btn:hover {
+    background: linear-gradient(135deg, #059669, var(--success-color));
+}
+
+.delete-btn {
+    background: linear-gradient(135deg, var(--danger-color), #dc2626);
+}
+
+.delete-btn:hover {
+    background: linear-gradient(135deg, #dc2626, var(--danger-color));
+}
+
+/* Puan Butonları */
+#puan-butonlari {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-bottom: 25px;
+}
+
+#puan-butonlari button {
+    flex: 1;
+    min-width: 150px;
+    font-size: 1.1rem;
+    padding: 16px 24px;
+    position: relative;
+    overflow: hidden;
+}
+
+#puan-butonlari button::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+#puan-butonlari button:hover::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* Grup Kartları */
+.grup-karti {
+    background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
+    border: 2px solid #e2e8f0;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.grup-karti:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-xl);
+    border-color: var(--primary-color);
+}
+
+.grup-karti h3 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1));
+    border-radius: 10px;
+    text-align: center;
+}
+
+/* Tablolar */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+}
+
+table thead {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    color: white;
+}
+
+table th {
+    padding: 15px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 1rem;
+}
+
+table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+table tbody tr {
+    transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+    background: rgba(99, 102, 241, 0.05);
+    transform: scale(1.01);
+}
+
+/* Checkbox Stilleri */
+input[type="checkbox"] {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+/* Devamsızlık Listesi */
+#devamsiz-listesi ul {
+    list-style: none;
+    padding: 0;
+}
+
+#devamsiz-listesi li {
+    background: #f8fafc;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--info-color);
+}
+
+#devamsiz-listesi li:hover {
+    background: #f1f5f9;
+    transform: translateX(5px);
+}
+
+.devamsiz {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+.aktif {
+    color: var(--success-color);
+    font-weight: 600;
+}
+
+/* Öğrenci Sayfası - Sıralama Tablosu */
+.siralama-tablosu {
+    margin-top: 20px;
+}
+
+.siralama-tablosu tbody tr {
+    transition: all 0.3s ease;
+}
+
+.siralama-tablosu tbody tr.birinci {
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    color: white;
+    font-weight: 700;
+    font-size: 1.1rem;
+    box-shadow: var(--shadow-md);
+}
+
+.siralama-tablosu tbody tr.birinci:hover {
+    transform: scale(1.02);
+}
+
+.devamsiz-ogrenci {
+    opacity: 0.6;
+}
+
+.devamsiz-text {
+    color: var(--danger-color);
+    font-weight: 600;
+}
+
+/* Öğrenci Sayfası - Grup Kartları */
+.gruplar-container-ogrenci {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
+.grup-karti-ogrenci {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 2px solid var(--accent-color);
+    border-radius: 16px;
+    padding: 20px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-md);
+}
+
+.grup-karti-ogrenci:hover {
+    transform: rotate(2deg) scale(1.05);
+    box-shadow: var(--shadow-xl);
+}
+
+.grup-karti-ogrenci h4 {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    margin-bottom: 15px;
+    text-align: center;
+    padding: 10px;
+    background: white;
+    border-radius: 10px;
+}
+
+.grup-karti-ogrenci ul {
+    list-style: none;
+    padding: 0;
+}
+
+.grup-karti-ogrenci li {
+    padding: 10px;
+    margin-bottom: 8px;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid var(--primary-color);
+    transition: all 0.2s ease;
+}
+
+.grup-karti-ogrenci li:hover {
+    transform: translateX(5px);
+    box-shadow: var(--shadow-sm);
+}
+
+/* Giriş Sayfası (Splash Screen) */
 .splash-body {
     display: flex;
     justify-content: center;
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    background-color: #f4f4f9;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+    background-size: 200% 200%;
+    animation: gradientShift 10s ease infinite;
+}
+
+@keyframes gradientShift {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 .splash-container {
     text-align: center;
-    padding: 40px;
-    background: white;
-    border-radius: 12px;
-    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 50px;
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 30px;
+    box-shadow: var(--shadow-xl);
+    backdrop-filter: blur(10px);
+    animation: fadeIn 0.8s ease-out;
+    max-width: 600px;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
 }
 
 .splash-container h1 {
-    color: #333;
-    margin-bottom: 5px;
+    color: var(--primary-color);
+    margin-bottom: 10px;
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
 }
 
 .splash-container h2 {
-    color: #555;
-    font-size: 1.2em;
-    margin-bottom: 30px;
+    color: var(--text-light);
+    font-size: 1.2rem;
+    margin-bottom: 40px;
 }
 
 .splash-buttons {
     display: flex;
     gap: 20px;
     justify-content: center;
+    flex-wrap: wrap;
 }
 
 .splash-btn {
     text-decoration: none;
-    padding: 15px 30px;
-    font-size: 1.1em;
-    font-weight: bold;
-    border-radius: 8px;
-    transition: background-color 0.3s, transform 0.1s;
-    box-shadow: 0 4px #999;
+    padding: 20px 40px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    border-radius: 16px;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+    min-width: 200px;
+}
+
+.splash-btn::before {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.3);
+    transform: translate(-50%, -50%);
+    transition: width 0.6s, height 0.6s;
+}
+
+.splash-btn:hover::before {
+    width: 300px;
+    height: 300px;
 }
 
 .admin-btn {
-    background-color: #007bff;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
     color: white;
-    border: 2px solid #007bff;
+}
+
+.admin-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: var(--shadow-xl);
 }
 
 .student-btn {
-    background-color: #28a745;
+    background: linear-gradient(135deg, #ec4899, #f43f5e);
     color: white;
-    border: 2px solid #28a745;
 }
 
-.splash-btn:hover {
-    transform: translateY(-2px);
-    opacity: 0.9;
+.student-btn:hover {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: var(--shadow-xl);
 }
 
-/* ... [Mevcut style.css içeriğinin geri kalanı] ... */
+/* Responsive Tasarım */
+@media (max-width: 768px) {
+    header h1 {
+        font-size: 1.8rem;
+    }
+    
+    section {
+        padding: 20px;
+    }
+    
+    section h2 {
+        font-size: 1.4rem;
+    }
+    
+    .splash-container {
+        padding: 30px 20px;
+        margin: 20px;
+    }
+    
+    .splash-container h1 {
+        font-size: 2rem;
+    }
+    
+    .splash-buttons {
+        flex-direction: column;
+    }
+    
+    .splash-btn {
+        width: 100%;
+    }
+    
+    nav a {
+        display: block;
+        margin: 5px 0;
+    }
+    
+    #puan-butonlari {
+        flex-direction: column;
+    }
+    
+    #puan-butonlari button {
+        width: 100%;
+    }
+    
+    .gruplar-container-ogrenci {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Scrollbar Stilleri */
+::-webkit-scrollbar {
+    width: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: #f1f5f9;
+}
+
+::-webkit-scrollbar-thumb {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+}
+
+/* HR Stilleri */
+hr {
+    border: none;
+    height: 3px;
+    background: linear-gradient(90deg, transparent, var(--primary-color), transparent);
+    margin: 30px 0;
+}
+
+/* Puan Gösterimi */
+.puan-badge {
+    display: inline-block;
+    background: linear-gradient(135deg, var(--accent-color), #f59e0b);
+    color: white;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+/* Yükleniyor Animasyonu */
+.loading {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}

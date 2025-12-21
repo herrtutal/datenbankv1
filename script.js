@@ -4,10 +4,10 @@
 const INITIAL_DATA_FILE = 'initial_data.json'; 
 
 const PUAN_BUTONLARI = [
-    { deger: 5, etiket: "Hızlı Cevap (+5)" },
-    { deger: 10, etiket: "Mükemmel Sunum (+10)" },
-    { deger: 20, etiket: "Proje Kazananı (+20)" },
-    { deger: -5, etiket: "Uyar ( -5)" }
+    { deger: 5, etiket: "⚡ Hızlı Cevap (+5)" },
+    { deger: 10, etiket: "🌟 Mükemmel Sunum (+10)" },
+    { deger: 20, etiket: "🏆 Proje Kazananı (+20)" },
+    { deger: -5, etiket: "⚠️ Uyarı (-5)" }
 ];
 
 let siniflar = {}; 
@@ -188,8 +188,9 @@ function gruplariOlustur() {
         [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
     }
 
+    const grupEmojileri = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⚫', '⚪', '🟤', '🔶'];
     const yeniGruplar = Array.from({ length: grupSayisi }, (_, i) => ({ 
-        ad: `Grup ${i + 1}`, 
+        ad: `${grupEmojileri[i] || '⭐'} Grup ${i + 1}`, 
         sinif: seciliSinif, 
         uyeler: [] 
     }));
@@ -215,7 +216,7 @@ function grupTablolariniGuncelle() {
     const seciliSinifGruplari = mevcutGruplar.filter(g => g.sinif === seciliSinif);
     
     if (!seciliSinif || seciliSinifGruplari.length === 0) {
-        container.innerHTML = "<p>Lütfen yukarıdan bir sınıf seçin ve grupları oluşturun.</p>";
+        container.innerHTML = "<p>📝 Lütfen yukarıdan bir sınıf seçin ve grupları oluşturun. 🎯</p>";
         devamsizlikListesiniGuncelle();
         return;
     }
@@ -229,9 +230,9 @@ function grupTablolariniGuncelle() {
         tablo.innerHTML = `
             <thead>
                 <tr>
-                    <th>Seç</th>
-                    <th>Öğrenci Adı</th>
-                    <th>Puan</th>
+                    <th>✅ Seç</th>
+                    <th>👤 Öğrenci Adı</th>
+                    <th>⭐ Puan</th>
                 </tr>
             </thead>
             <tbody>
@@ -239,7 +240,7 @@ function grupTablolariniGuncelle() {
                     <tr>
                         <td><input type="checkbox" value="${gIndex}-${uIndex}"></td>
                         <td>${uye.ad}</td>
-                        <td>${uye.puan}</td>
+                        <td><span class="puan-badge">${uye.puan}</span></td>
                     </tr>
                 `).join('')}
             </tbody>
@@ -428,31 +429,33 @@ function ogrenciSiralamaGoster() {
     siralamaDiv.innerHTML = '';
     
     if (!seciliSinif || !siniflar[seciliSinif]) {
-        siralamaDiv.innerHTML = "<p>Lütfen bir sınıf seçin.</p>";
+        siralamaDiv.innerHTML = "<p>🎯 Lütfen bir sınıf seçin.</p>";
         return;
     }
 
     const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => b.puan - a.puan);
 
     let html = `
-        <h3>${seciliSinif} Sınıfı Puan Sıralaması</h3>
+        <h3>🏆 ${seciliSinif} Sınıfı Puan Sıralaması 🏆</h3>
         <table class="siralama-tablosu">
             <thead>
                 <tr>
-                    <th>Sıra</th>
-                    <th>Öğrenci Adı</th>
-                    <th>Puan</th>
+                    <th>🥇 Sıra</th>
+                    <th>👤 Öğrenci Adı</th>
+                    <th>⭐ Puan</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
+    const madalyaEmojileri = ['🥇', '🥈', '🥉'];
     siraliOgrenciler.forEach((ogrenci, index) => {
+        const madalya = index < 3 ? madalyaEmojileri[index] + ' ' : '';
         html += `
             <tr class="${ogrenci.devamsiz ? 'devamsiz-ogrenci' : ''} ${index === 0 ? 'birinci' : ''}">
-                <td>${index + 1}</td>
+                <td>${madalya}${index + 1}</td>
                 <td>${ogrenci.ad} ${ogrenci.devamsiz ? '(<span class="devamsiz-text">Devamsız</span>)' : ''}</td>
-                <td>${ogrenci.puan}</td>
+                <td><span class="puan-badge">${ogrenci.puan}</span></td>
             </tr>
         `;
     });
@@ -467,19 +470,19 @@ function ogrenciGrupGoster() {
     grupDiv.innerHTML = '';
 
     if (!seciliSinif || !siniflar[seciliSinif]) {
-        grupDiv.innerHTML = "<p>Lütfen bir sınıf seçin.</p>";
+        grupDiv.innerHTML = "<p>🎯 Lütfen bir sınıf seçin.</p>";
         return;
     }
 
     const sinifaOzelGruplar = mevcutGruplar.filter(g => g.sinif === seciliSinif);
 
     if (sinifaOzelGruplar.length === 0) {
-        grupDiv.innerHTML = "<p>Bu sınıfa ait henüz grup oluşturulmadı.</p>";
+        grupDiv.innerHTML = "<p>📝 Bu sınıfa ait henüz grup oluşturulmadı. Öğretmeninizden grup oluşturmasını isteyin! 🎯</p>";
         return;
     }
 
 
-    let html = `<h3>${seciliSinif} Sınıfı Grupları</h3><div class="gruplar-container-ogrenci">`;
+    let html = `<h3>👥 ${seciliSinif} Sınıfı Grupları 👥</h3><div class="gruplar-container-ogrenci">`;
 
     sinifaOzelGruplar.forEach((grup) => {
         html += `
