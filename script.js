@@ -1,7 +1,21 @@
 // --- SABİT TANIMLAMALAR ---
 
+// Varsayılan veri (Firebase'de veri yoksa kullanılır)
+const INITIAL_DATA = {
+    "siniflar": {
+        "10-A": [ 
+            { "ad": "Ahmet Yılmaz", "numara": "101", "cinsiyet": "e", "devamsiz": false, "puan": 50 },
+            { "ad": "Ayşe Kaya", "numara": "102", "cinsiyet": "k", "devamsiz": false, "puan": 35 },
+            { "ad": "Burak Demir", "numara": "103", "cinsiyet": "e", "devamsiz": false, "puan": 40 }
+        ],
+        "5-A": [], "5-B": [], "5-C": [], "5-D": [], "5-E": [], "5-F": [],
+        "6-A": [], "6-B": [], "6-E": [], "6-F": []
+    },
+    "gruplar": []
+};
+
 // BASE_SINIFLAR SABİTİ KALDIRILMIŞTIR. Veri artık JSON dosyasından yüklenecek.
-const INITIAL_DATA_FILE = 'initial_data.json';
+// const INITIAL_DATA_FILE = 'initial_data.json';
 
 // Admin giriş bilgileri
 const ADMIN_USERNAME = 'Herr Tutal';
@@ -77,12 +91,13 @@ const FIRESTORE_DOCUMENT_ID = 'anaVeri';
 // Firestore'dan veri kaydetme
 async function veriyiKaydet() {
     try {
-        // LocalStorage'a her zaman kaydet (yedek olarak)
         const kayitObjesi = {
             siniflar: siniflar,
             gruplar: mevcutGruplar,
             guncellemeTarihi: new Date().toISOString()
         };
+
+        // LocalStorage'a her zaman kaydet (yedek olarak)
         localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
         console.log("Veri LocalStorage'a kaydedildi.");
 
@@ -235,17 +250,11 @@ async function ilkVeriyiYukle() {
         return;
     }
 
-    // 2. Firestore'da veri yoksa, JSON dosyasından yükle ve Firestore'a kaydet
+    // 2. Firestore'da veri yoksa, varsayılan veriyi kullan ve Firestore'a kaydet
     try {
-        const response = await fetch(INITIAL_DATA_FILE);
-        if (!response.ok) {
-            throw new Error(`JSON dosyası yüklenemedi: ${response.statusText}`);
-        }
-        const initialData = await response.json();
-        
-        // Global değişkenlere ata
-        siniflar = initialData.siniflar || {};
-        mevcutGruplar = initialData.gruplar || [];
+        // Varsayılan veriyi kullan
+        siniflar = INITIAL_DATA.siniflar || {};
+        mevcutGruplar = INITIAL_DATA.gruplar || [];
         
         // Sınıf isimlerini güncelle (eski verilerde olabilir)
         sinifIsimleriniGuncelle();
@@ -264,7 +273,7 @@ async function ilkVeriyiYukle() {
         veriDinleyicisiniKur();
         
     } catch (e) {
-        console.error("JSON dosyasından ilk veri yüklenirken hata oluştu. Uygulama boş başlatılıyor.", e);
+        console.error("Varsayılan veri yüklenirken hata oluştu. Uygulama boş başlatılıyor.", e);
         // Hata durumunda boş objelerle başlat
         siniflar = {}; 
         mevcutGruplar = [];
