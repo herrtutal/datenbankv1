@@ -77,29 +77,70 @@ const FIRESTORE_DOCUMENT_ID = 'anaVeri';
 // Firestore'dan veri kaydetme
 async function veriyiKaydet() {
     try {
-        if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi. Veri kaydedilemedi.");
-            return;
-        }
-
+        // LocalStorage'a her zaman kaydet (yedek olarak)
         const kayitObjesi = {
             siniflar: siniflar,
             gruplar: mevcutGruplar,
-            guncellemeTarihi: firebase.firestore.FieldValue.serverTimestamp()
+            guncellemeTarihi: new Date().toISOString()
         };
+        localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
+        console.log("Veri LocalStorage'a kaydedildi.");
 
+        if (typeof db === 'undefined') {
+            console.warn("Firebase henüz yüklenmedi. Sadece LocalStorage'a kaydedildi.");
+            return;
+        }
+
+        // Firestore'a kaydet (zaman damgası ile)
+        kayitObjesi.guncellemeTarihi = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID).set(kayitObjesi);
         console.log("Veri Firestore'a başarıyla kaydedildi.");
     } catch (e) {
-        console.error("Firestore'a veri kaydedilirken bir hata oluştu:", e);
+        console.error("Veri kaydedilirken bir hata oluştu:", e);
+        // Hata durumunda bile LocalStorage'a kaydetmeyi dene
+        try {
+            const kayitObjesi = {
+                siniflar: siniflar,
+                gruplar: mevcutGruplar,
+                guncellemeTarihi: new Date().toISOString()
+            };
+            localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
+            console.log("Hata sonrası veri LocalStorage'a kaydedildi.");
+        } catch (localError) {
+            console.error("LocalStorage'a kaydetme de başarısız:", localError);
+        }
     }
 }
 
 // Firestore'dan veri yükleme
 async function veriyiYukle() {
     try {
+        // Önce LocalStorage'dan dene
+        const localData = localStorage.getItem('sinifVerileri');
+        if (localData) {
+            const data = JSON.parse(localData);
+            if (data && data.siniflar) {
+                siniflar = data.siniflar || {};
+                mevcutGruplar = data.gruplar || [];
+                
+                // Sınıf isimlerini güncelle
+                sinifIsimleriniGuncelle();
+                
+                // Tüm sınıflardaki öğrencileri sırala
+                Object.keys(siniflar).forEach(sinifAdi => {
+                    if (Array.isArray(siniflar[sinifAdi])) {
+                        siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+                    }
+                });
+                
+                console.log("Veri LocalStorage'dan yüklendi ve sıralandı.");
+                return true;
+            }
+        }
+
+        // LocalStorage'da yoksa Firestore'dan dene
         if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi.");
+            console.warn("Firebase henüz yüklenmedi ve LocalStorage'da veri yok.");
             return false;
         }
 
@@ -128,7 +169,7 @@ async function veriyiYukle() {
         }
         return false;
     } catch (e) {
-        console.error("Firestore'dan veri yüklenirken hata oluştu:", e);
+        console.error("Veri yüklenirken hata oluştu:", e);
         return false;
     }
 }
@@ -158,6 +199,18 @@ function veriDinleyicisiniKur() {
                                 siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
                             }
                         });
+                        
+                        // LocalStorage'a da kaydet (yedek olarak)
+                        try {
+                            const localKayit = {
+                                siniflar: siniflar,
+                                gruplar: mevcutGruplar,
+                                guncellemeTarihi: new Date().toISOString()
+                            };
+                            localStorage.setItem('sinifVerileri', JSON.stringify(localKayit));
+                        } catch (e) {
+                            console.error("LocalStorage'a kaydetme hatası:", e);
+                        }
                         
                         console.log("Veri gerçek zamanlı olarak güncellendi ve sıralandı.");
                         tumVerileriGuncelle();
