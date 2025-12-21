@@ -521,7 +521,9 @@ function topluOgrenciEkle() {
     let basarili = 0;
     let basarisiz = 0;
     const hatalar = [];
+    const yeniOgrenciler = []; // Önce tüm öğrencileri topla
     
+    // Önce tüm öğrencileri parse et ve doğrula
     satirlar.forEach((satir, index) => {
         const parcalar = satir.split('|').map(p => p.trim());
         
@@ -541,10 +543,17 @@ function topluOgrenciEkle() {
             return;
         }
         
-        // Aynı numara veya ad kontrolü
+        // Aynı numara veya ad kontrolü (mevcut verilerde)
         if (siniflar[sinif].some(o => o.ad === ad || o.numara === numara)) {
             basarisiz++;
             hatalar.push(`Satır ${index + 1}: ${ad} veya ${numara} numaralı öğrenci zaten mevcut`);
+            return;
+        }
+        
+        // Yeni eklenen öğrenciler arasında da kontrol
+        if (yeniOgrenciler.some(o => o.sinif === sinif && (o.ad === ad || o.numara === numara))) {
+            basarisiz++;
+            hatalar.push(`Satır ${index + 1}: ${ad} veya ${numara} numaralı öğrenci listede tekrar ediyor`);
             return;
         }
         
@@ -553,15 +562,32 @@ function topluOgrenciEkle() {
             numara: numara,
             cinsiyet: cinsiyet,
             devamsiz: false,
-            puan: 0
+            puan: 0,
+            sinif: sinif // Sıralama için sınıf bilgisini de ekle
         };
         
-        siniflar[sinif].push(yeniOgrenci);
+        yeniOgrenciler.push(yeniOgrenci);
+    });
+    
+    // Öğrencileri sırala (Sınıf, Numara, Ad Soyad, Cinsiyet)
+    yeniOgrenciler.sort((a, b) => ogrenciSiralamaFonksiyonu(a, b, a.sinif, b.sinif));
+    
+    // Sıralı şekilde ekle
+    yeniOgrenciler.forEach(ogrenci => {
+        const ogrenciBilgileri = {
+            ad: ogrenci.ad,
+            numara: ogrenci.numara,
+            cinsiyet: ogrenci.cinsiyet,
+            devamsiz: ogrenci.devamsiz,
+            puan: ogrenci.puan
+        };
+        const hedefSinif = ogrenci.sinif;
+        siniflar[hedefSinif].push(ogrenciBilgileri);
         basarili++;
     });
     
     if (basarili > 0) {
-        // Eklenen sınıfları sırala
+        // Tüm sınıfları sırala (yeni eklenenler dahil)
         Object.keys(siniflar).forEach(sinifAdi => {
             if (Array.isArray(siniflar[sinifAdi])) {
                 siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
