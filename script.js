@@ -660,31 +660,49 @@ function ogrenciSiralamaGoster() {
         return;
     }
 
-    const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => b.puan - a.puan);
+    // Sıralama: Sınıf, Numara, Ad Soyad, Cinsiyet sırasına göre
+    // (Sınıf zaten seçili olduğu için sınıf içinde numara, ad soyad, cinsiyet sırasına göre sırala)
+    const siraliOgrenciler = [...siniflar[seciliSinif]].sort((a, b) => {
+        // Önce numara'ya göre sırala (sayısal)
+        const numaraA = parseInt(a.numara) || 0;
+        const numaraB = parseInt(b.numara) || 0;
+        if (numaraA !== numaraB) {
+            return numaraA - numaraB;
+        }
+        // Numara aynıysa ad soyada göre sırala
+        if (a.ad !== b.ad) {
+            return a.ad.localeCompare(b.ad, 'tr');
+        }
+        // Ad soyad da aynıysa cinsiyete göre sırala (Erkek önce)
+        if (a.cinsiyet !== b.cinsiyet) {
+            return (a.cinsiyet === 'e' ? -1 : 1);
+        }
+        return 0;
+    });
 
     let html = `
-        <h3>🏆 ${seciliSinif} Sınıfı Puan Sıralaması 🏆</h3>
+        <h3>📋 ${seciliSinif} Sınıfı Öğrenci Listesi 📋</h3>
         <table class="siralama-tablosu">
             <thead>
                 <tr>
-                    <th>🥇 Sıra</th>
-                    <th>👤 Öğrenci Adı</th>
+                    <th>🏫 Sınıf</th>
                     <th>🔢 Numara</th>
-                    <th>⭐ Puan</th>
+                    <th>👤 Adı Soyadı</th>
+                    <th>⚥ Cinsiyet</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
-    const madalyaEmojileri = ['🥇', '🥈', '🥉'];
-    siraliOgrenciler.forEach((ogrenci, index) => {
-        const madalya = index < 3 ? madalyaEmojileri[index] + ' ' : '';
+    siraliOgrenciler.forEach((ogrenci) => {
+        const cinsiyetText = ogrenci.cinsiyet === 'e' ? 'Erkek' : (ogrenci.cinsiyet === 'k' ? 'Kız' : '-');
+        const cinsiyetEmoji = ogrenci.cinsiyet === 'e' ? '👨' : (ogrenci.cinsiyet === 'k' ? '👩' : '❓');
         html += `
-            <tr class="${ogrenci.devamsiz ? 'devamsiz-ogrenci' : ''} ${index === 0 ? 'birinci' : ''}">
-                <td>${madalya}${index + 1}</td>
-                <td>${ogrenci.ad} ${ogrenci.devamsiz ? '(<span class="devamsiz-text">Devamsız</span>)' : ''}</td>
+            <tr class="${ogrenci.devamsiz ? 'devamsiz-ogrenci' : ''}">
+                <td>${seciliSinif}</td>
                 <td>${ogrenci.numara || '-'}</td>
-                <td><span class="puan-badge">${ogrenci.puan}</span></td>
+                <td>${ogrenci.ad} ${ogrenci.devamsiz ? '(<span class="devamsiz-text">Devamsız</span>)' : ''}</td>
+                <td>${cinsiyetEmoji} ${cinsiyetText}</td>
             </tr>
         `;
     });
