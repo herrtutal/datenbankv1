@@ -246,13 +246,20 @@ button:active {
     height: 300px;
 }
 
+/* Grup Container - Grid Layout */
+#gruplar-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+    margin-top: 20px;
+}
+
 /* Grup Kartları */
 .grup-karti {
     background: linear-gradient(135deg, #f8fafc 0%, #ffffff 100%);
     border: 2px solid #e2e8f0;
     border-radius: 16px;
     padding: 20px;
-    margin-bottom: 20px;
     transition: all 0.3s ease;
     box-shadow: var(--shadow-md);
 }
@@ -426,6 +433,56 @@ input[type="checkbox"] {
 .grup-karti-ogrenci li:hover {
     transform: translateX(5px);
     box-shadow: var(--shadow-sm);
+}
+
+/* Login Modal */
+#login-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+}
+
+.login-container {
+    background: white;
+    padding: 40px;
+    border-radius: 20px;
+    box-shadow: var(--shadow-xl);
+    max-width: 400px;
+    width: 90%;
+    animation: fadeIn 0.5s ease-out;
+}
+
+.login-container h2 {
+    text-align: center;
+    color: var(--primary-color);
+    margin-bottom: 30px;
+    font-size: 2rem;
+}
+
+.login-container input[type="text"],
+.login-container input[type="password"] {
+    width: 100%;
+    padding: 12px 15px;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+    margin-top: 8px;
+}
+
+.login-container input[type="text"]:focus,
+.login-container input[type="password"]:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
 }
 
 /* Giriş Sayfası (Splash Screen) */

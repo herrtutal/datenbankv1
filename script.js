@@ -1,7 +1,11 @@
 // --- SABİT TANIMLAMALAR ---
 
 // BASE_SINIFLAR SABİTİ KALDIRILMIŞTIR. Veri artık JSON dosyasından yüklenecek.
-const INITIAL_DATA_FILE = 'initial_data.json'; 
+const INITIAL_DATA_FILE = 'initial_data.json';
+
+// Admin giriş bilgileri
+const ADMIN_USERNAME = 'Herr Tutal';
+const ADMIN_PASSWORD = 'ht2553'; 
 
 const PUAN_BUTONLARI = [
     { deger: 5, etiket: "⚡ Hızlı Cevap (+5)" },
@@ -183,9 +187,28 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
-    for (let i = aktifOgrenciler.length - 1; i > 0; i--) {
+    // Öğrencileri cinsiyete göre ayır
+    const erkekOgrenciler = [];
+    const kizOgrenciler = [];
+    
+    aktifOgrenciler.forEach(ogrenci => {
+        const cinsiyet = ogrenciCinsiyetiTahminEt(ogrenci.ad);
+        if (cinsiyet === 'e') {
+            erkekOgrenciler.push(ogrenci);
+        } else {
+            kizOgrenciler.push(ogrenci);
+        }
+    });
+    
+    // Her iki listeyi de karıştır
+    for (let i = erkekOgrenciler.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));
-        [aktifOgrenciler[i], aktifOgrenciler[j]] = [aktifOgrenciler[j], aktifOgrenciler[i]];
+        [erkekOgrenciler[i], erkekOgrenciler[j]] = [erkekOgrenciler[j], erkekOgrenciler[i]];
+    }
+    
+    for (let i = kizOgrenciler.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [kizOgrenciler[i], kizOgrenciler[j]] = [kizOgrenciler[j], kizOgrenciler[i]];
     }
 
     const grupEmojileri = ['🔴', '🔵', '🟢', '🟡', '🟣', '🟠', '⚫', '⚪', '🟤', '🔶'];
@@ -195,8 +218,15 @@ function gruplariOlustur() {
         uyeler: [] 
     }));
 
-    aktifOgrenciler.forEach((ogrenci, index) => {
+    // Erkek öğrencileri dengeli dağıt
+    erkekOgrenciler.forEach((ogrenci, index) => {
         const grupIndex = index % grupSayisi;
+        yeniGruplar[grupIndex].uyeler.push(ogrenci);
+    });
+    
+    // Kız öğrencileri dengeli dağıt (ters yönde başlayarak daha iyi denge sağla)
+    kizOgrenciler.forEach((ogrenci, index) => {
+        const grupIndex = (grupSayisi - 1 - (index % grupSayisi)) % grupSayisi;
         yeniGruplar[grupIndex].uyeler.push(ogrenci);
     });
 
@@ -504,9 +534,127 @@ function ogrenciGrupGoster() {
 }
 
 
+// --- GİRİŞ KONTROLÜ ---
+
+function girisKontrol() {
+    const username = document.getElementById('admin-username').value.trim();
+    const password = document.getElementById('admin-password').value.trim();
+    const errorElement = document.getElementById('login-error');
+    
+    if (username === ADMIN_USERNAME && password === ADMIN_PASSWORD) {
+        // Giriş başarılı - localStorage'a kaydet
+        localStorage.setItem('adminLoggedIn', 'true');
+        document.getElementById('login-modal').style.display = 'none';
+        document.getElementById('admin-content').style.display = 'block';
+        
+        // Sayfayı yeniden yükle ki tüm fonksiyonlar çalışsın
+        window.location.reload();
+    } else {
+        // Giriş başarısız
+        errorElement.style.display = 'block';
+        document.getElementById('admin-password').value = '';
+        document.getElementById('admin-password').focus();
+    }
+}
+
+function adminCikisYap() {
+    localStorage.removeItem('adminLoggedIn');
+    window.location.reload();
+}
+
+// Giriş durumunu kontrol et
+function adminGirisKontrol() {
+    const loginModal = document.getElementById('login-modal');
+    const adminContent = document.getElementById('admin-content');
+    
+    if (!loginModal || !adminContent) return false; // Admin sayfası değil
+    
+    const loggedIn = localStorage.getItem('adminLoggedIn') === 'true';
+    
+    if (loggedIn) {
+        loginModal.style.display = 'none';
+        adminContent.style.display = 'block';
+        return true;
+    } else {
+        loginModal.style.display = 'flex';
+        adminContent.style.display = 'none';
+        return false;
+    }
+}
+
+// Enter tuşu ile giriş
+document.addEventListener('DOMContentLoaded', () => {
+    adminGirisKontrol(); // Sayfa yüklendiğinde giriş kontrolü yap
+    
+    const passwordInput = document.getElementById('admin-password');
+    const usernameInput = document.getElementById('admin-username');
+    
+    if (passwordInput) {
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                girisKontrol();
+            }
+        });
+    }
+    
+    if (usernameInput) {
+        usernameInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                passwordInput.focus();
+            }
+        });
+    }
+});
+
+// --- CİNSİYET TAHMİNİ (İsimden) ---
+
+function ogrenciCinsiyetiTahminEt(isim) {
+    const isimLower = isim.toLowerCase().trim();
+    
+    // Yaygın Türkçe kadın isimleri
+    const kadinIsimleri = ['ayşe', 'fatma', 'zeynep', 'elif', 'merve', 'büşra', 'defne', 'elisa', 
+                           'cemre', 'dilara', 'ece', 'eda', 'emine', 'esra', 'feride', 'gizem', 
+                           'hanife', 'hatice', 'melisa', 'melis', 'nazlı', 'nur', 'seda', 'selin', 
+                           'serap', 'serpil', 'sibel', 'sude', 'tuğba', 'yasemin', 'yeliz', 'yıldız',
+                           'zümrüt', 'ebru', 'nurcan', 'özge', 'pınar', 'deniz', 'su', 'damla'];
+    
+    // Yaygın Türkçe erkek isimleri
+    const erkekIsimleri = ['ahmet', 'mehmet', 'ali', 'mustafa', 'hüseyin', 'ibrahim', 'ismail', 
+                           'halil', 'ömer', 'osman', 'kemal', 'hasan', 'hüseyin', 'murat', 
+                           'serkan', 'eren', 'burak', 'berkan', 'can', 'cem', 'deniz', 'emre', 
+                           'onur', 'volkan', 'yusuf', 'yasin', 'berat', 'berkay', 'furkan', 
+                           'kerem', 'kaan', 'barış', 'ertuğrul', 'tunahan'];
+    
+    // Tam eşleşme kontrolü
+    if (kadinIsimleri.some(ad => isimLower.includes(ad) || isimLower.startsWith(ad))) {
+        return 'k';
+    }
+    if (erkekIsimleri.some(ad => isimLower.includes(ad) || isimLower.startsWith(ad))) {
+        return 'e';
+    }
+    
+    // İsim son harfine göre tahmin (basit yaklaşım)
+    // "a" ile bitenler genelde kadın olabilir (ama güvenilir değil)
+    if (isimLower.endsWith('a') || isimLower.endsWith('e') || isimLower.endsWith('i')) {
+        return 'k'; // Şüpheli durumlarda varsayılan olarak kadın
+    }
+    
+    return 'e'; // Varsayılan olarak erkek
+}
+
 // --- BAŞLANGIÇ VE YÜKLEME ---
 
 document.addEventListener('DOMContentLoaded', async () => {
+    // Admin sayfasında giriş kontrolü
+    const loginModal = document.getElementById('login-modal');
+    if (loginModal) {
+        const loggedIn = adminGirisKontrol();
+        if (!loggedIn) {
+            // Giriş yapılmamış, sayfanın geri kalanını yükleme
+            return;
+        }
+    }
+    
     
     // 1. JSON veya LocalStorage'dan verileri asenkron olarak yükle
     await ilkVeriyiYukle();

@@ -9,6 +9,24 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
+    <!-- Şifre Giriş Modalı -->
+    <div id="login-modal" style="display: block;">
+        <div class="login-container">
+            <h2>🔐 Yönetici Girişi</h2>
+            <div class="form-group">
+                <label for="admin-username">Kullanıcı Adı:</label>
+                <input type="text" id="admin-username" placeholder="Kullanıcı adınızı girin">
+            </div>
+            <div class="form-group">
+                <label for="admin-password">Şifre:</label>
+                <input type="password" id="admin-password" placeholder="Şifrenizi girin">
+            </div>
+            <button onclick="girisKontrol()" style="width: 100%; margin-top: 20px;">Giriş Yap</button>
+            <p id="login-error" style="color: var(--danger-color); margin-top: 10px; display: none;">Kullanıcı adı veya şifre hatalı!</p>
+        </div>
+    </div>
+
+    <div id="admin-content" style="display: none;">
     <header>
         <h1>👨‍🏫 Öğretmen Paneli 🎯</h1>
     </header>
@@ -97,6 +115,7 @@
             </div>
         </section>
     </main>
+    </div>
 
     <script src="firebase-config.js"></script>
     <script src="script.js"></script>
