@@ -525,15 +525,29 @@ function topluOgrenciEkle() {
     
     // Önce tüm öğrencileri parse et ve doğrula
     satirlar.forEach((satir, index) => {
-        const parcalar = satir.split('-').map(p => p.trim());
+        // "- " ile split yap (tire + boşluk) ve trim et
+        const parcalar = satir.split(/\s*-\s*/).map(p => p.trim()).filter(p => p.length > 0);
         
-        if (parcalar.length !== 4) {
+        if (parcalar.length < 4) {
             basarisiz++;
-            hatalar.push(`Satır ${index + 1}: Format hatalı (4 alan olmalı: Sınıf - Numara - Ad Soyad - Cinsiyet)`);
+            hatalar.push(`Satır ${index + 1}: Format hatalı (4 alan olmalı: Sınıf - Numara - Ad Soyad - Cinsiyet). Bulunan alan sayısı: ${parcalar.length}`);
             return;
         }
         
-        const [sinif, numara, ad, cinsiyetStr] = parcalar;
+        // Eğer 4'ten fazla parça varsa, muhtemelen sınıf içinde tire var (örn: "10-A")
+        // Bu durumda ilk birkaç parçayı sınıf olarak birleştir
+        let sinif, numara, ad, cinsiyetStr;
+        
+        if (parcalar.length === 4) {
+            // Normal durum: tam 4 parça
+            [sinif, numara, ad, cinsiyetStr] = parcalar;
+        } else {
+            // Sınıf içinde tire var, son 3 parçayı al, kalanını sınıf yap
+            cinsiyetStr = parcalar[parcalar.length - 1];
+            ad = parcalar[parcalar.length - 2];
+            numara = parcalar[parcalar.length - 3];
+            sinif = parcalar.slice(0, parcalar.length - 3).join('-');
+        }
         const cinsiyet = cinsiyetStr.toUpperCase() === 'E' || cinsiyetStr.toUpperCase() === 'ERKEK' ? 'e' : 
                         (cinsiyetStr.toUpperCase() === 'K' || cinsiyetStr.toUpperCase() === 'KIZ' ? 'k' : null);
         
