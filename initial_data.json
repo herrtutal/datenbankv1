@@ -1,9 +1,9 @@
 {
     "siniflar": {
         "10-A": [ 
-            { "ad": "Ahmet Yılmaz", "devamsiz": false, "puan": 50 },
-            { "ad": "Ayşe Kaya", "devamsiz": false, "puan": 35 },
-            { "ad": "Burak Demir", "devamsiz": false, "puan": 40 }
+            { "ad": "Ahmet Yılmaz", "numara": "101", "cinsiyet": "e", "devamsiz": false, "puan": 50 },
+            { "ad": "Ayşe Kaya", "numara": "102", "cinsiyet": "k", "devamsiz": false, "puan": 35 },
+            { "ad": "Burak Demir", "numara": "103", "cinsiyet": "e", "devamsiz": false, "puan": 40 }
         ],
         "11-B": [],
         "5A": [], "5B": [], "5C": [], "5D": [], "5E": [], "5F": [],

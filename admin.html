@@ -73,15 +73,53 @@
 
         <section id="veri-ekleme-alani">
             <h2>➕ Öğrenci Ekle</h2>
-            <div class="form-group">
-                <label for="yeniOgrenciAd">Öğrenci Adı:</label>
-                <input type="text" id="yeniOgrenciAd" placeholder="Öğrencinin Adı Soyadı" required>
+            
+            <div class="tabs">
+                <button class="tab-button active" onclick="acTab('tek-tek')">📝 Tek Tek Ekle</button>
+                <button class="tab-button" onclick="acTab('toplu')">📋 Toplu Ekle</button>
             </div>
-            <div class="form-group">
-                <label for="hedefSinifSecimi">Hedef Sınıf:</label>
-                <select id="hedefSinifSecimi"></select>
+
+            <!-- Tek Tek Ekleme -->
+            <div id="tek-tek-tab" class="tab-content active">
+                <div class="form-group">
+                    <label for="yeniOgrenciAd">Öğrenci Adı Soyadı:</label>
+                    <input type="text" id="yeniOgrenciAd" placeholder="Öğrencinin Adı Soyadı" required>
+                </div>
+                <div class="form-group">
+                    <label for="yeniOgrenciNo">Öğrenci Numarası:</label>
+                    <input type="text" id="yeniOgrenciNo" placeholder="Örn: 123" required>
+                </div>
+                <div class="form-group">
+                    <label for="yeniOgrenciCinsiyet">Cinsiyet:</label>
+                    <select id="yeniOgrenciCinsiyet" required>
+                        <option value="">Seçiniz...</option>
+                        <option value="e">Erkek</option>
+                        <option value="k">Kız</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="hedefSinifSecimi">Hedef Sınıf:</label>
+                    <select id="hedefSinifSecimi"></select>
+                </div>
+                <button onclick="yeniOgrenciEkle()">✨ Sınıfa Ekle</button>
             </div>
-            <button onclick="yeniOgrenciEkle()">Sınıfa Ekle</button>
+
+            <!-- Toplu Ekleme -->
+            <div id="toplu-tab" class="tab-content">
+                <p><strong>Toplu öğrenci ekleme formatı:</strong></p>
+                <p style="font-size: 0.9em; color: var(--text-light); margin-bottom: 15px;">
+                    Her satıra bir öğrenci bilgisi girin. Format: <strong>Ad Soyad | Numara | Cinsiyet (E/K) | Sınıf</strong><br>
+                    Örnek:<br>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">Ahmet Yılmaz | 123 | E | 10-A</code><br>
+                    <code style="background: #f1f5f9; padding: 2px 5px; border-radius: 4px;">Ayşe Kaya | 456 | K | 10-A</code>
+                </p>
+                <div class="form-group">
+                    <label for="topluOgrenciListesi">Öğrenci Listesi:</label>
+                    <textarea id="topluOgrenciListesi" rows="15" placeholder="Ahmet Yılmaz | 123 | E | 10-A&#10;Ayşe Kaya | 456 | K | 10-A&#10;Mehmet Demir | 789 | E | 11-B" style="width: 100%; padding: 12px; border: 2px solid #e2e8f0; border-radius: 12px; font-family: monospace; font-size: 0.95em; resize: vertical;"></textarea>
+                </div>
+                <button onclick="topluOgrenciEkle()" class="refresh-btn">📥 Toplu Ekle</button>
+                <button onclick="ornekVeriYukle()" style="background: linear-gradient(135deg, var(--info-color), #2563eb);">📋 Örnek Veri Yükle</button>
+            </div>
         </section>
         
         <hr>
@@ -89,20 +127,38 @@
         <section id="yonetim-alani">
             <h2>🛠️ Yönetim İşlemleri</h2>
 
-            <h3>Öğrenci Adı Düzenle</h3>
+            <h3>✏️ Öğrenci Bilgilerini Düzenle</h3>
             <div class="form-group">
                 <label for="duzenlenecekSinifSecim">Sınıf Seç:</label>
-                <select id="duzenlenecekSinifSecim"></select>
+                <select id="duzenlenecekSinifSecim" onchange="ogrenciListesiGuncelle()"></select>
             </div>
             <div class="form-group">
                 <label for="duzenlenecekOgrenci">Öğrenci Seç:</label>
-                <select id="duzenlenecekOgrenci"></select>
+                <select id="duzenlenecekOgrenci" onchange="ogrenciBilgileriniYukle()"></select>
             </div>
             <div class="form-group">
-                <label for="yeniOgrenciAdDuzenle">Yeni Ad:</label>
-                <input type="text" id="yeniOgrenciAdDuzenle" placeholder="Yeni Öğrenci Adı Soyadı">
-                <button onclick="ogrenciAdiniDuzenle()">Adı Güncelle</button>
+                <label for="yeniOgrenciAdDuzenle">Ad Soyad:</label>
+                <input type="text" id="yeniOgrenciAdDuzenle" placeholder="Öğrenci Adı Soyadı">
             </div>
+            <div class="form-group">
+                <label for="duzenlenecekOgrenciNo">Öğrenci Numarası:</label>
+                <input type="text" id="duzenlenecekOgrenciNo" placeholder="Öğrenci Numarası">
+            </div>
+            <div class="form-group">
+                <label for="duzenlenecekOgrenciCinsiyet">Cinsiyet:</label>
+                <select id="duzenlenecekOgrenciCinsiyet">
+                    <option value="">Seçiniz...</option>
+                    <option value="e">Erkek</option>
+                    <option value="k">Kız</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="yeniOgrenciSinifSecim">Yeni Sınıf:</label>
+                <select id="yeniOgrenciSinifSecim">
+                    <option value="">Sınıf Değiştirme</option>
+                </select>
+            </div>
+            <button onclick="ogrenciBilgileriniGuncelle()">💾 Bilgileri Güncelle</button>
 
             <hr>
             

@@ -187,12 +187,13 @@ function gruplariOlustur() {
 
     let aktifOgrenciler = siniflar[seciliSinif].filter(o => !o.devamsiz);
     
-    // Öğrencileri cinsiyete göre ayır
+    // Öğrencileri cinsiyete göre ayır (artık direkt cinsiyet bilgisi var)
     const erkekOgrenciler = [];
     const kizOgrenciler = [];
     
     aktifOgrenciler.forEach(ogrenci => {
-        const cinsiyet = ogrenciCinsiyetiTahminEt(ogrenci.ad);
+        // Cinsiyet bilgisi varsa onu kullan, yoksa tahmin et (geriye dönük uyumluluk)
+        const cinsiyet = ogrenci.cinsiyet || ogrenciCinsiyetiTahminEt(ogrenci.ad);
         if (cinsiyet === 'e') {
             erkekOgrenciler.push(ogrenci);
         } else {
@@ -262,6 +263,7 @@ function grupTablolariniGuncelle() {
                 <tr>
                     <th>✅ Seç</th>
                     <th>👤 Öğrenci Adı</th>
+                    <th>🔢 Numara</th>
                     <th>⭐ Puan</th>
                 </tr>
             </thead>
@@ -270,6 +272,7 @@ function grupTablolariniGuncelle() {
                     <tr>
                         <td><input type="checkbox" value="${gIndex}-${uIndex}"></td>
                         <td>${uye.ad}</td>
+                        <td>${uye.numara || '-'}</td>
                         <td><span class="puan-badge">${uye.puan}</span></td>
                     </tr>
                 `).join('')}
@@ -367,30 +370,143 @@ function sinifSelectleriniDoldur() {
     });
 }
 
+// Tab Değiştirme
+function acTab(tabAdi) {
+    // Tüm tab içeriklerini gizle
+    document.querySelectorAll('.tab-content').forEach(tab => {
+        tab.classList.remove('active');
+    });
+    // Tüm tab butonlarını pasif yap
+    document.querySelectorAll('.tab-button').forEach(btn => {
+        btn.classList.remove('active');
+    });
+    
+    // Seçilen tab'ı aktif yap
+    document.getElementById(tabAdi + '-tab').classList.add('active');
+    event.target.classList.add('active');
+}
+
+// Tek Tek Öğrenci Ekleme
 function yeniOgrenciEkle() {
     const adInput = document.getElementById('yeniOgrenciAd');
+    const noInput = document.getElementById('yeniOgrenciNo');
+    const cinsiyetSelect = document.getElementById('yeniOgrenciCinsiyet');
     const hedefSinif = document.getElementById('hedefSinifSecimi').value;
+    
     const ad = adInput.value.trim();
+    const numara = noInput.value.trim();
+    const cinsiyet = cinsiyetSelect.value;
 
-    if (!ad || !hedefSinif || !siniflar[hedefSinif]) {
-        alert("Lütfen geçerli bir öğrenci adı girin ve bir sınıf seçin.");
+    if (!ad || !numara || !cinsiyet || !hedefSinif || !siniflar[hedefSinif]) {
+        alert("Lütfen tüm alanları doldurun ve bir sınıf seçin.");
         return;
     }
     
-    if (siniflar[hedefSinif].some(o => o.ad === ad)) {
-        alert(`Hata: ${ad} öğrencisi zaten ${hedefSinif} sınıfında mevcut.`);
+    // Aynı numara veya ad kontrolü
+    if (siniflar[hedefSinif].some(o => o.ad === ad || o.numara === numara)) {
+        alert(`Hata: ${ad} öğrencisi veya ${numara} numaralı öğrenci zaten ${hedefSinif} sınıfında mevcut.`);
         return;
     }
 
-    const yeniOgrenci = { ad: ad, devamsiz: false, puan: 0 };
+    const yeniOgrenci = { 
+        ad: ad, 
+        numara: numara,
+        cinsiyet: cinsiyet,
+        devamsiz: false, 
+        puan: 0 
+    };
     siniflar[hedefSinif].push(yeniOgrenci);
     
     veriyiKaydet(); 
     
-    alert(`${ad}, ${hedefSinif} sınıfına başarıyla eklendi ve kaydedildi!`);
+    alert(`✅ ${ad} (${numara}), ${hedefSinif} sınıfına başarıyla eklendi!`);
     
-    adInput.value = ''; 
+    adInput.value = '';
+    noInput.value = '';
+    cinsiyetSelect.value = '';
     tumVerileriGuncelle(); 
+}
+
+// Toplu Öğrenci Ekleme
+function topluOgrenciEkle() {
+    const listeTextarea = document.getElementById('topluOgrenciListesi');
+    const liste = listeTextarea.value.trim();
+    
+    if (!liste) {
+        alert("Lütfen öğrenci listesini girin!");
+        return;
+    }
+    
+    const satirlar = liste.split('\n').filter(satir => satir.trim().length > 0);
+    let basarili = 0;
+    let basarisiz = 0;
+    const hatalar = [];
+    
+    satirlar.forEach((satir, index) => {
+        const parcalar = satir.split('|').map(p => p.trim());
+        
+        if (parcalar.length !== 4) {
+            basarisiz++;
+            hatalar.push(`Satır ${index + 1}: Format hatalı (4 alan olmalı)`);
+            return;
+        }
+        
+        const [ad, numara, cinsiyetStr, sinif] = parcalar;
+        const cinsiyet = cinsiyetStr.toUpperCase() === 'E' || cinsiyetStr.toUpperCase() === 'ERKEK' ? 'e' : 
+                        (cinsiyetStr.toUpperCase() === 'K' || cinsiyetStr.toUpperCase() === 'KIZ' ? 'k' : null);
+        
+        if (!ad || !numara || !cinsiyet || !sinif || !siniflar[sinif]) {
+            basarisiz++;
+            hatalar.push(`Satır ${index + 1}: Eksik veya geçersiz bilgi`);
+            return;
+        }
+        
+        // Aynı numara veya ad kontrolü
+        if (siniflar[sinif].some(o => o.ad === ad || o.numara === numara)) {
+            basarisiz++;
+            hatalar.push(`Satır ${index + 1}: ${ad} veya ${numara} numaralı öğrenci zaten mevcut`);
+            return;
+        }
+        
+        const yeniOgrenci = {
+            ad: ad,
+            numara: numara,
+            cinsiyet: cinsiyet,
+            devamsiz: false,
+            puan: 0
+        };
+        
+        siniflar[sinif].push(yeniOgrenci);
+        basarili++;
+    });
+    
+    if (basarili > 0) {
+        veriyiKaydet();
+        tumVerileriGuncelle();
+    }
+    
+    let mesaj = `✅ ${basarili} öğrenci başarıyla eklendi!`;
+    if (basarisiz > 0) {
+        mesaj += `\n❌ ${basarisiz} öğrenci eklenemedi.\n\nHatalar:\n${hatalar.join('\n')}`;
+    }
+    
+    alert(mesaj);
+    
+    if (basarili > 0) {
+        listeTextarea.value = '';
+    }
+}
+
+// Örnek Veri Yükleme
+function ornekVeriYukle() {
+    const ornekVeri = `Ahmet Yılmaz | 101 | E | 10-A
+Ayşe Kaya | 102 | K | 10-A
+Mehmet Demir | 103 | E | 10-A
+Fatma Şahin | 104 | K | 10-A
+Ali Veli | 105 | E | 11-B
+Zeynep Öz | 106 | K | 11-B`;
+    
+    document.getElementById('topluOgrenciListesi').value = ornekVeri;
 }
 
 function ogrenciListesiGuncelle() {
@@ -398,39 +514,120 @@ function ogrenciListesiGuncelle() {
     const ogrenciSelect = document.getElementById('duzenlenecekOgrenci');
     if (!ogrenciSelect) return;
     
-    ogrenciSelect.innerHTML = ''; 
+    ogrenciSelect.innerHTML = '<option value="">Öğrenci seçin...</option>'; 
 
     if (siniflar[sinifAdi]) {
         siniflar[sinifAdi].forEach(ogrenci => {
             const option = document.createElement('option');
             option.value = ogrenci.ad; 
-            option.textContent = ogrenci.ad;
+            const numaraGoster = ogrenci.numara ? ` (${ogrenci.numara})` : '';
+            option.textContent = ogrenci.ad + numaraGoster;
             ogrenciSelect.appendChild(option);
+        });
+    }
+    
+    // Sınıf listesini güncelle (sınıf değiştirme için)
+    const yeniSinifSelect = document.getElementById('yeniOgrenciSinifSecim');
+    if (yeniSinifSelect) {
+        yeniSinifSelect.innerHTML = '<option value="">Sınıf Değiştirme</option>';
+        Object.keys(siniflar).sort().forEach(sinif => {
+            if (sinif !== sinifAdi) {
+                const option = document.createElement('option');
+                option.value = sinif;
+                option.textContent = sinif;
+                yeniSinifSelect.appendChild(option);
+            }
         });
     }
 }
 
-function ogrenciAdiniDuzenle() {
+// Öğrenci bilgilerini form alanlarına yükle
+function ogrenciBilgileriniYukle() {
+    const sinifAdi = document.getElementById('duzenlenecekSinifSecim').value;
+    const ogrenciAdi = document.getElementById('duzenlenecekOgrenci').value;
+    
+    if (!sinifAdi || !ogrenciAdi || !siniflar[sinifAdi]) return;
+    
+    const ogrenci = siniflar[sinifAdi].find(o => o.ad === ogrenciAdi);
+    
+    if (ogrenci) {
+        document.getElementById('yeniOgrenciAdDuzenle').value = ogrenci.ad || '';
+        document.getElementById('duzenlenecekOgrenciNo').value = ogrenci.numara || '';
+        document.getElementById('duzenlenecekOgrenciCinsiyet').value = ogrenci.cinsiyet || '';
+    }
+}
+
+function ogrenciBilgileriniGuncelle() {
     const sinifAdi = document.getElementById('duzenlenecekSinifSecim').value;
     const eskiAd = document.getElementById('duzenlenecekOgrenci').value;
-    const yeniAdInput = document.getElementById('yeniOgrenciAdDuzenle');
-    const yeniAd = yeniAdInput.value.trim();
+    const yeniAd = document.getElementById('yeniOgrenciAdDuzenle').value.trim();
+    const yeniNumara = document.getElementById('duzenlenecekOgrenciNo').value.trim();
+    const yeniCinsiyet = document.getElementById('duzenlenecekOgrenciCinsiyet').value;
+    const yeniSinif = document.getElementById('yeniOgrenciSinifSecim').value;
 
-    if (!yeniAd || !eskiAd) return alert("Lütfen hem öğrenciyi seçin hem de yeni adı girin.");
+    if (!eskiAd) return alert("Lütfen önce bir öğrenci seçin.");
+    if (!yeniAd) return alert("Lütfen öğrenci adını girin.");
 
-    const ogrenci = siniflar[sinifAdi].find(o => o.ad === eskiAd);
+    const ogrenci = siniflar[sinifAdi]?.find(o => o.ad === eskiAd);
 
-    if (ogrenci) {
-        ogrenci.ad = yeniAd; 
-        
-        veriyiKaydet();
-        yeniAdInput.value = ''; 
-        
-        tumVerileriGuncelle(); 
-        alert(`${eskiAd} öğrencisinin adı başarıyla ${yeniAd} olarak güncellendi.`);
-    } else {
+    if (!ogrenci) {
         alert("Öğrenci bulunamadı.");
+        return;
     }
+
+    // Sınıf değiştirme
+    let hedefSinif = sinifAdi;
+    if (yeniSinif && yeniSinif !== sinifAdi && siniflar[yeniSinif]) {
+        // Yeni sınıfta aynı numara veya ad kontrolü
+        if (siniflar[yeniSinif].some(o => o.numara === yeniNumara && o.numara) || 
+            siniflar[yeniSinif].some(o => o.ad === yeniAd && o.ad !== eskiAd)) {
+            alert("Hedef sınıfta aynı numara veya ad ile öğrenci mevcut!");
+            return;
+        }
+        
+        // Eski sınıftan çıkar
+        siniflar[sinifAdi] = siniflar[sinifAdi].filter(o => o.ad !== eskiAd);
+        // Yeni sınıfa ekle
+        hedefSinif = yeniSinif;
+    }
+
+    // Bilgileri güncelle
+    ogrenci.ad = yeniAd;
+    if (yeniNumara) ogrenci.numara = yeniNumara;
+    if (yeniCinsiyet) ogrenci.cinsiyet = yeniCinsiyet;
+    
+    // Sınıf değiştirildiyse yeni sınıfa ekle
+    if (yeniSinif && yeniSinif !== sinifAdi) {
+        siniflar[yeniSinif].push(ogrenci);
+        
+        // Grupları da güncelle
+        mevcutGruplar.forEach(grup => {
+            grup.uyeler.forEach(uye => {
+                if (uye.ad === eskiAd) {
+                    uye.ad = yeniAd;
+                    if (yeniNumara) uye.numara = yeniNumara;
+                    if (yeniCinsiyet) uye.cinsiyet = yeniCinsiyet;
+                }
+            });
+        });
+    }
+    
+    veriyiKaydet();
+    
+    // Form alanlarını temizle
+    document.getElementById('yeniOgrenciAdDuzenle').value = '';
+    document.getElementById('duzenlenecekOgrenciNo').value = '';
+    document.getElementById('duzenlenecekOgrenciCinsiyet').value = '';
+    document.getElementById('yeniOgrenciSinifSecim').value = '';
+    document.getElementById('duzenlenecekOgrenci').value = '';
+    
+    tumVerileriGuncelle();
+    
+    let mesaj = `✅ ${eskiAd} öğrencisinin bilgileri güncellendi.`;
+    if (yeniSinif && yeniSinif !== sinifAdi) {
+        mesaj += `\n📚 Sınıf ${sinifAdi} → ${yeniSinif} olarak değiştirildi.`;
+    }
+    alert(mesaj);
 }
 
 function sinifiSil() {
@@ -472,6 +669,7 @@ function ogrenciSiralamaGoster() {
                 <tr>
                     <th>🥇 Sıra</th>
                     <th>👤 Öğrenci Adı</th>
+                    <th>🔢 Numara</th>
                     <th>⭐ Puan</th>
                 </tr>
             </thead>
@@ -485,6 +683,7 @@ function ogrenciSiralamaGoster() {
             <tr class="${ogrenci.devamsiz ? 'devamsiz-ogrenci' : ''} ${index === 0 ? 'birinci' : ''}">
                 <td>${madalya}${index + 1}</td>
                 <td>${ogrenci.ad} ${ogrenci.devamsiz ? '(<span class="devamsiz-text">Devamsız</span>)' : ''}</td>
+                <td>${ogrenci.numara || '-'}</td>
                 <td><span class="puan-badge">${ogrenci.puan}</span></td>
             </tr>
         `;
