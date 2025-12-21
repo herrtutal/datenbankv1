@@ -486,8 +486,8 @@ function yeniOgrenciEkle() {
     }
 
     const yeniOgrenci = { 
-        ad: ad, 
         numara: numara,
+        ad: ad, 
         cinsiyet: cinsiyet,
         devamsiz: false, 
         puan: 0 
