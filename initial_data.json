@@ -1,6 +1,6 @@
 {
     "siniflar": {
-        "10-A": [ 
+        "10A": [ 
             { "ad": "Ahmet Yılmaz", "numara": "101", "cinsiyet": "e", "devamsiz": false, "puan": 50 },
             { "ad": "Ayşe Kaya", "numara": "102", "cinsiyet": "k", "devamsiz": false, "puan": 35 },
             { "ad": "Burak Demir", "numara": "103", "cinsiyet": "e", "devamsiz": false, "puan": 40 }
