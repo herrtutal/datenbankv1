@@ -57,29 +57,68 @@ const FIRESTORE_DOCUMENT_ID = 'anaVeri';
 // Firestore'dan veri kaydetme
 async function veriyiKaydet() {
     try {
-        if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi. Veri kaydedilemedi.");
-            return;
-        }
-
         const kayitObjesi = {
             siniflar: siniflar,
             gruplar: mevcutGruplar,
-            guncellemeTarihi: firebase.firestore.FieldValue.serverTimestamp()
+            guncellemeTarihi: new Date().toISOString()
         };
 
+        // LocalStorage'a her zaman kaydet (yedek olarak)
+        localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
+        console.log("Veri LocalStorage'a kaydedildi.");
+
+        if (typeof db === 'undefined') {
+            console.warn("Firebase henüz yüklenmedi. Sadece LocalStorage'a kaydedildi.");
+            return;
+        }
+
+        // Firestore'a kaydet (zaman damgası ile)
+        kayitObjesi.guncellemeTarihi = firebase.firestore.FieldValue.serverTimestamp();
         await db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID).set(kayitObjesi);
         console.log("Veri Firestore'a başarıyla kaydedildi.");
     } catch (e) {
-        console.error("Firestore'a veri kaydedilirken bir hata oluştu:", e);
+        console.error("Veri kaydedilirken bir hata oluştu:", e);
+        // Hata durumunda bile LocalStorage'a kaydetmeyi dene
+        try {
+            const kayitObjesi = {
+                siniflar: siniflar,
+                gruplar: mevcutGruplar,
+                guncellemeTarihi: new Date().toISOString()
+            };
+            localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
+            console.log("Hata sonrası veri LocalStorage'a kaydedildi.");
+        } catch (localError) {
+            console.error("LocalStorage'a kaydetme de başarısız:", localError);
+        }
     }
 }
 
 // Firestore'dan veri yükleme
 async function veriyiYukle() {
     try {
+        // Önce LocalStorage'dan dene
+        const localData = localStorage.getItem('sinifVerileri');
+        if (localData) {
+            const data = JSON.parse(localData);
+            if (data && data.siniflar) {
+                siniflar = data.siniflar || {};
+                mevcutGruplar = data.gruplar || [];
+                
+                // Tüm sınıflardaki öğrencileri sırala
+                Object.keys(siniflar).forEach(sinifAdi => {
+                    if (Array.isArray(siniflar[sinifAdi])) {
+                        siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+                    }
+                });
+                
+                console.log("Veri LocalStorage'dan yüklendi ve sıralandı.");
+                return true;
+            }
+        }
+
+        // LocalStorage'da yoksa Firestore'dan dene
         if (typeof db === 'undefined') {
-            console.warn("Firebase henüz yüklenmedi.");
+            console.warn("Firebase henüz yüklenmedi ve LocalStorage'da veri yok.");
             return false;
         }
 
@@ -105,7 +144,7 @@ async function veriyiYukle() {
         }
         return false;
     } catch (e) {
-        console.error("Firestore'dan veri yüklenirken hata oluştu:", e);
+        console.error("Veri yüklenirken hata oluştu:", e);
         return false;
     }
 }
@@ -132,6 +171,18 @@ function veriDinleyicisiniKur() {
                                 siniflar[sinifAdi].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
                             }
                         });
+                        
+                        // LocalStorage'a da kaydet (yedek olarak)
+                        try {
+                            const localKayit = {
+                                siniflar: siniflar,
+                                gruplar: mevcutGruplar,
+                                guncellemeTarihi: new Date().toISOString()
+                            };
+                            localStorage.setItem('sinifVerileri', JSON.stringify(localKayit));
+                        } catch (e) {
+                            console.error("LocalStorage'a kaydetme hatası:", e);
+                        }
                         
                         console.log("Veri gerçek zamanlı olarak güncellendi ve sıralandı.");
                         tumVerileriGuncelle();
@@ -465,50 +516,56 @@ function acTab(tabAdi) {
 
 // Tek Tek Öğrenci Ekleme
 function yeniOgrenciEkle() {
-    const adInput = document.getElementById('yeniOgrenciAd');
-    const noInput = document.getElementById('yeniOgrenciNo');
-    const cinsiyetSelect = document.getElementById('yeniOgrenciCinsiyet');
-    const hedefSinif = document.getElementById('hedefSinifSecimi').value;
-    
-    const ad = adInput.value.trim();
-    const numara = noInput.value.trim();
-    const cinsiyet = cinsiyetSelect.value;
+    try {
+        const adInput = document.getElementById('yeniOgrenciAd');
+        const noInput = document.getElementById('yeniOgrenciNo');
+        const cinsiyetSelect = document.getElementById('yeniOgrenciCinsiyet');
+        const hedefSinif = document.getElementById('hedefSinifSecimi').value;
+        
+        const ad = adInput.value.trim();
+        const numara = noInput.value.trim();
+        const cinsiyet = cinsiyetSelect.value;
 
-    if (!ad || !numara || !cinsiyet || !hedefSinif || !siniflar[hedefSinif]) {
-        alert("Lütfen tüm alanları doldurun ve bir sınıf seçin.");
-        return;
-    }
-    
-    // Aynı numara veya ad kontrolü
-    if (siniflar[hedefSinif].some(o => o.ad === ad || o.numara === numara)) {
-        alert(`Hata: ${ad} öğrencisi veya ${numara} numaralı öğrenci zaten ${hedefSinif} sınıfında mevcut.`);
-        return;
-    }
+        if (!ad || !numara || !cinsiyet || !hedefSinif || !siniflar[hedefSinif]) {
+            alert("Lütfen tüm alanları doldurun ve bir sınıf seçin.");
+            return;
+        }
+        
+        // Aynı numara veya ad kontrolü
+        if (siniflar[hedefSinif].some(o => o.ad === ad || o.numara === numara)) {
+            alert(`Hata: ${ad} öğrencisi veya ${numara} numaralı öğrenci zaten ${hedefSinif} sınıfında mevcut.`);
+            return;
+        }
 
-    const yeniOgrenci = { 
-        numara: numara,
-        ad: ad, 
-        cinsiyet: cinsiyet,
-        devamsiz: false, 
-        puan: 0 
-    };
-    siniflar[hedefSinif].push(yeniOgrenci);
-    
-    // Sınıfı yeniden sırala
-    siniflar[hedefSinif].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
-    
-    veriyiKaydet(); 
-    
-    alert(`✅ ${ad} (${numara}), ${hedefSinif} sınıfına başarıyla eklendi!`);
-    
-    adInput.value = '';
-    noInput.value = '';
-    cinsiyetSelect.value = '';
-    tumVerileriGuncelle(); 
+        const yeniOgrenci = { 
+            numara: numara,
+            ad: ad, 
+            cinsiyet: cinsiyet,
+            devamsiz: false, 
+            puan: 0 
+        };
+        siniflar[hedefSinif].push(yeniOgrenci);
+        
+        // Sınıfı yeniden sırala
+        siniflar[hedefSinif].sort((a, b) => ogrenciSiralamaFonksiyonu(a, b));
+        
+        veriyiKaydet(); 
+        
+        alert(`✅ ${ad} (${numara}), ${hedefSinif} sınıfına başarıyla eklendi!`);
+        
+        adInput.value = '';
+        noInput.value = '';
+        cinsiyetSelect.value = '';
+        tumVerileriGuncelle(); 
+    } catch (e) {
+        console.error("Öğrenci eklenirken hata oluştu:", e);
+        alert("Öğrenci eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
+    }
 }
 
 // Toplu Öğrenci Ekleme
 function topluOgrenciEkle() {
+    try {
     const listeTextarea = document.getElementById('topluOgrenciListesi');
     const liste = listeTextarea.value.trim();
     
@@ -620,6 +677,10 @@ function topluOgrenciEkle() {
     
     if (basarili > 0) {
         listeTextarea.value = '';
+    }
+    } catch (e) {
+        console.error("Toplu öğrenci eklenirken hata oluştu:", e);
+        alert("Toplu öğrenci eklenirken bir hata oluştu. Lütfen tekrar deneyin.");
     }
 }
 
