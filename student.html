@@ -4,6 +4,9 @@
     <meta charset="UTF-8">
     <title>Öğrenci Sayfası - Puan ve Grup Durumu</title>
     <link rel="stylesheet" href="style.css">
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 </head>
 <body>
     <header>
@@ -22,8 +25,17 @@
             <select id="ogrenciSinifSecimi"></select>
             <button onclick="tumVerileriGuncelle()" class="refresh-btn">Verileri Yenile/Güncelle</button>
         </section>
-        </main>
 
+        <section id="siralama-alani">
+            <div id="siralama-listesi"></div>
+        </section>
+
+        <section id="grup-alani">
+            <div id="grup-gosterim-alani"></div>
+        </section>
+    </main>
+
+    <script src="firebase-config.js"></script>
     <script src="script.js"></script>
 </body>
 </html>

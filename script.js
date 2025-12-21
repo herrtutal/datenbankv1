@@ -15,49 +15,98 @@ let mevcutGruplar = [];
 let seciliSinif = "10-A"; 
 
 
-// --- KALICILIK YÖNETİMİ (LOCALSTORAGE) ---
+// --- KALICILIK YÖNETİMİ (FIREBASE FIRESTORE) ---
 
-function veriyiKaydet() {
+const FIRESTORE_COLLECTION = 'sinifVerileri';
+const FIRESTORE_DOCUMENT_ID = 'anaVeri';
+
+// Firestore'dan veri kaydetme
+async function veriyiKaydet() {
     try {
+        if (typeof db === 'undefined') {
+            console.warn("Firebase henüz yüklenmedi. Veri kaydedilemedi.");
+            return;
+        }
+
         const kayitObjesi = {
             siniflar: siniflar,
-            gruplar: mevcutGruplar 
+            gruplar: mevcutGruplar,
+            guncellemeTarihi: firebase.firestore.FieldValue.serverTimestamp()
         };
-        localStorage.setItem('sinifVerileri', JSON.stringify(kayitObjesi));
+
+        await db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID).set(kayitObjesi);
+        console.log("Veri Firestore'a başarıyla kaydedildi.");
     } catch (e) {
-        console.error("Local storage'a veri kaydedilirken bir hata oluştu:", e);
+        console.error("Firestore'a veri kaydedilirken bir hata oluştu:", e);
     }
 }
 
-function veriyiYukle() {
-    const kayitliVeri = localStorage.getItem('sinifVerileri');
-    if (kayitliVeri) {
-        try {
-            const parsedData = JSON.parse(kayitliVeri);
-            
-            if (typeof parsedData === 'object' && parsedData !== null && parsedData.siniflar) {
-                // Sınıfları ve grupları tamamen kayıtlı veriyle değiştir
-                siniflar = parsedData.siniflar; 
-                mevcutGruplar = parsedData.gruplar || []; 
+// Firestore'dan veri yükleme
+async function veriyiYukle() {
+    try {
+        if (typeof db === 'undefined') {
+            console.warn("Firebase henüz yüklenmedi.");
+            return false;
+        }
+
+        const docRef = db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID);
+        const doc = await docRef.get();
+
+        if (doc.exists) {
+            const data = doc.data();
+            if (data && data.siniflar) {
+                siniflar = data.siniflar || {};
+                mevcutGruplar = data.gruplar || [];
+                console.log("Veri Firestore'dan yüklendi.");
                 return true;
             }
-        } catch (e) {
-            console.error("Local storage verisi bozuk veya geçersiz. Varsayılan veriler kullanılacak.", e);
-            localStorage.removeItem('sinifVerileri'); 
         }
+        return false;
+    } catch (e) {
+        console.error("Firestore'dan veri yüklenirken hata oluştu:", e);
+        return false;
     }
-    return false;
+}
+
+// Firestore'da gerçek zamanlı dinleyici kurma (tüm kullanıcılar verileri anında görsün)
+function veriDinleyicisiniKur() {
+    try {
+        if (typeof db === 'undefined') {
+            console.warn("Firebase henüz yüklenmedi. Dinleyici kurulamadı.");
+            return;
+        }
+
+        db.collection(FIRESTORE_COLLECTION).doc(FIRESTORE_DOCUMENT_ID)
+            .onSnapshot((doc) => {
+                if (doc.exists) {
+                    const data = doc.data();
+                    if (data && data.siniflar) {
+                        siniflar = data.siniflar || {};
+                        mevcutGruplar = data.gruplar || [];
+                        console.log("Veri gerçek zamanlı olarak güncellendi.");
+                        tumVerileriGuncelle();
+                    }
+                }
+            }, (error) => {
+                console.error("Veri dinleyicisi hatası:", error);
+            });
+    } catch (e) {
+        console.error("Veri dinleyicisi kurulurken hata oluştu:", e);
+    }
 }
 
 // --- JSON DOSYASINDAN İLK VERİ YÜKLEME İŞLEVİ ---
 
 async function ilkVeriyiYukle() {
-    // 1. LocalStorage'da güncel veri varsa onu kullan
-    if (veriyiYukle()) {
-        return; 
+    // 1. Firestore'dan veri yüklemeyi dene
+    const firestoreVar = await veriyiYukle();
+    if (firestoreVar) {
+        // Veri dinleyicisini kur (gerçek zamanlı güncelleme için)
+        veriDinleyicisiniKur();
+        return;
     }
 
-    // 2. LocalStorage boşsa, JSON dosyasından yükle
+    // 2. Firestore'da veri yoksa, JSON dosyasından yükle ve Firestore'a kaydet
     try {
         const response = await fetch(INITIAL_DATA_FILE);
         if (!response.ok) {
@@ -69,8 +118,11 @@ async function ilkVeriyiYukle() {
         siniflar = initialData.siniflar || {};
         mevcutGruplar = initialData.gruplar || [];
 
-        // Yeni veriyi LocalStorage'a kaydet (uygulamanın bir sonraki açılışı için)
-        veriyiKaydet(); 
+        // Veriyi Firestore'a kaydet
+        await veriyiKaydet();
+        
+        // Veri dinleyicisini kur
+        veriDinleyicisiniKur();
         
     } catch (e) {
         console.error("JSON dosyasından ilk veri yüklenirken hata oluştu. Uygulama boş başlatılıyor.", e);
